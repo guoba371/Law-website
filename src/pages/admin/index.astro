@@ -1,0 +1,145 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../admin/layouts/AdminLayout.astro';
+import { isUsingDefaultPassword } from '../../server/auth';
+import { publicUrl } from '../../server/site-url';
+import { countArticles, getSettings, listArticles } from '../../server/store';
+import { practiceAreas, lawyers, localPages, cities } from '../../content/firm';
+
+const settings = getSettings();
+const counts = countArticles();
+const recent = listArticles().slice(0, 6);
+const justRebuilt = Astro.url.searchParams.get('rebuilt') === '1';
+
+const metrics = [
+  { value: String(counts.total), label: '文章总数' },
+  { value: String(counts.published), label: '已发布' },
+  { value: String(counts.draft), label: '草稿' },
+  { value: String(practiceAreas.length), label: '业务领域' },
+];
+
+const inventory = [
+  { label: '业务领域', value: `${practiceAreas.length} 个` },
+  { label: '律师', value: `${lawyers.length} 位` },
+  { label: '办公城市', value: cities.map((city) => city.name).join('、') },
+  { label: '地域页', value: `${localPages.length} 个` },
+];
+---
+
+<AdminLayout title="总览" current="dashboard">
+  <Fragment slot="actions">
+    <a class="btn btn--ghost btn--sm" href={publicUrl('/', Astro.url.host)} target="_blank" rel="noopener">查看站点</a>
+    <form method="post" action="/admin/rebuild/">
+      <button type="submit" class="btn btn--solid btn--sm">重新构建站点</button>
+    </form>
+  </Fragment>
+
+  {justRebuilt && <p class="notice">站点已重新构建，前台现在显示的是最新内容。</p>}
+
+  {isUsingDefaultPassword() && (
+    <p class="notice">
+      后台正在使用内置初始密码，任何人都可以登录。上线前请设置环境变量 <code>ADMIN_PASSWORD</code>。
+    </p>
+  )}
+
+  <div class="metrics">
+    {metrics.map((metric) => (
+      <div class="metric">
+        <b>{metric.value}</b>
+        <span>{metric.label}</span>
+      </div>
+    ))}
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>最近的文章</h2>
+        <p>草稿不会出现在前台，发布后才随构建生效。</p>
+      </div>
+      <a class="row-link" href="/admin/articles/">全部文章 →</a>
+    </div>
+
+    {recent.length === 0 ? (
+      <div class="empty">还没有文章。<a href="/admin/articles/new/">新建第一篇</a></div>
+    ) : (
+      <table class="table">
+        <thead>
+          <tr>
+            <th>标题</th>
+            <th>分类</th>
+            <th>状态</th>
+            <th>发布日期</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recent.map((article) => (
+            <tr>
+              <td>
+                <a class="row-link cell-title" href={`/admin/articles/${article.id}/`}>{article.title}</a>
+                <span class="cell-sub">/insights/{article.slug}/</span>
+              </td>
+              <td>{article.category}</td>
+              <td>
+                <span class={`badge ${article.status === 'published' ? 'badge--published' : 'badge--draft'}`}>
+                  {article.status === 'published' ? '已发布' : '草稿'}
+                </span>
+              </td>
+              <td class="cell-num">{article.publishedAt}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>站点信息</h2>
+        <p>这些字段决定前台页头、页脚与结构化数据里的显示内容。</p>
+      </div>
+      <a class="row-link" href="/admin/settings/">编辑 →</a>
+    </div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>律所名称</label>
+          <p>{settings.name}</p>
+        </div>
+        <div class="field">
+          <label>执业许可证号</label>
+          <p>{settings.license || '未填写'}</p>
+        </div>
+        <div class="field">
+          <label>咨询电话</label>
+          <p>{settings.phoneDisplay || '未填写'}</p>
+        </div>
+        <div class="field">
+          <label>站点 Logo</label>
+          <p>{settings.logo ? '已上传' : '使用文字字标'}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>内容清单</h2>
+        <p>以下内容目前来自代码里的种子数据，暂未开放后台编辑。</p>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="form-grid">
+        {inventory.map((item) => (
+          <div class="field">
+            <label>{item.label}</label>
+            <p>{item.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</AdminLayout>

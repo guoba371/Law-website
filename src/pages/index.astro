@@ -1,0 +1,202 @@
+---
+import BaseLayout from '../site/layouts/SiteLayout.astro';
+import ContactBand from '../site/components/ContactBand.astro';
+import { practiceAreas, lawyers } from '../content/firm';
+import { getSettings, listArticles } from '../server/store';
+
+const firm = getSettings();
+const articles = listArticles({ publishedOnly: true });
+
+const title = `${firm.city}律师事务所`;
+const description = `${firm.name}成立于 ${firm.founded} 年，执业律师 ${firm.lawyerCount} 名，办理劳动与人事争议、婚姻家事、合同与商事纠纷、刑事辩护业务。`;
+
+const [featuredLawyer, ...otherLawyers] = lawyers;
+
+const statBand = [
+  { value: firm.founded, unit: '', label: '成立年份' },
+  { value: firm.lawyerCount, unit: '名', label: '执业律师' },
+  { value: '2', unit: '地', label: '办公机构' },
+  { value: String(practiceAreas.length), unit: '个', label: '业务方向' },
+];
+---
+
+<BaseLayout {title} {description}>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <h1>把争议拆成步骤，把步骤落到证据</h1>
+        <p class="hero-lead">
+          我们先判断争议性质、管辖机构与时效状态，再说明有哪些路径，以及每条路径需要付出的代价。
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn--solid" href="/contact/">预约咨询</a>
+          <a class="btn btn--ghost" href="/practice/">查看业务领域</a>
+        </div>
+      </div>
+
+      <aside class="card-panel">
+        <h3>{firm.name}</h3>
+        <p class="panel-sub">律师事务所执业信息公示</p>
+        <dl class="panel-list">
+          <div>
+            <dt>执业许可证号</dt>
+            <dd class="is-numeric">31310000MD000000XX</dd>
+          </div>
+          <div>
+            <dt>办公地址</dt>
+            <dd>{firm.address}</dd>
+          </div>
+          <div>
+            <dt>咨询电话</dt>
+            <dd class="is-numeric">{firm.phoneDisplay}</dd>
+          </div>
+          <div>
+            <dt>服务区域</dt>
+            <dd>上海 · 杭州</dd>
+          </div>
+        </dl>
+        <p class="panel-foot">
+          执业信息可向司法行政机关核对，律师个人执业证号在律师页面公示。首次电话沟通不收取费用，
+          沟通本身不构成委托关系。
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="stat-band">
+    <div class="wrap">
+      {statBand.map((item) => (
+        <div class="stat">
+          <div class="stat-num">
+            {item.value}
+            {item.unit && <small>{item.unit}</small>}
+          </div>
+          <div class="stat-label">{item.label}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>四类主要业务，覆盖大多数常见争议</h2>
+        <p>每个领域都按同一套流程推进：先梳理事实与证据，再测算可行方案，最后才进入程序。</p>
+      </div>
+
+      <div class="area-grid">
+        {practiceAreas.map((area) => (
+          <a class="area-item" href={`/practice/${area.slug}/`}>
+            <h3>{area.name}</h3>
+            <p>{area.summary}</p>
+            <span class="area-more">了解处理方式 →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--paper2">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>案件推进的四个阶段</h2>
+        <p>每一步都有明确产出，你随时知道案件处在哪个阶段、下一步要准备什么。</p>
+      </div>
+
+      <ol class="steps">
+        <li class="step">
+          <h3>事实梳理</h3>
+          <p>核对书面材料、时间节点与沟通记录，形成一份可以逐条核对的事实时间轴。</p>
+        </li>
+        <li class="step">
+          <h3>方案测算</h3>
+          <p>按法定标准测算可能的结果区间，比较调解、仲裁与诉讼的周期与成本。</p>
+        </li>
+        <li class="step">
+          <h3>程序准备</h3>
+          <p>确定管辖机构，撰写申请书，整理证据目录，完成立案前的全部准备工作。</p>
+        </li>
+        <li class="step">
+          <h3>主张与执行</h3>
+          <p>出庭主张权利，取得生效文书后推进财产查控与执行，让判决变成实际结果。</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>承办律师及其执业信息</h2>
+        <p>案件由合伙人负责，具体承办律师与分工在委托前明确告知。</p>
+      </div>
+
+      <div class="roster">
+        <a class="roster-item roster-item--feature" href={`/lawyers/${featuredLawyer.slug}/`}>
+          <span class="portrait">{featuredLawyer.initial}</span>
+          <div>
+            <h3>{featuredLawyer.name}</h3>
+            <p class="roster-title">{featuredLawyer.title}</p>
+            <p class="roster-bio">{featuredLawyer.bio}</p>
+            <dl class="roster-meta">
+              <div><dt>主要领域</dt><dd>{featuredLawyer.areas.join('、')}</dd></div>
+            </dl>
+          </div>
+          <dl class="roster-meta">
+            <div><dt>执业证号</dt><dd>{featuredLawyer.licenseNo}</dd></div>
+            <div><dt>执业年限</dt><dd>{featuredLawyer.years} 年</dd></div>
+            <div><dt>社会职务</dt><dd>{featuredLawyer.roles.length} 项</dd></div>
+          </dl>
+        </a>
+
+        {otherLawyers.map((lawyer) => (
+          <a class="roster-item" href={`/lawyers/${lawyer.slug}/`}>
+            <span class="portrait">{lawyer.initial}</span>
+            <div>
+              <h3>{lawyer.name}</h3>
+              <p class="roster-title">{lawyer.title}</p>
+              <dl class="roster-meta">
+                <div><dt>主要领域</dt><dd>{lawyer.areas.join('、')}</dd></div>
+              </dl>
+            </div>
+            <dl class="roster-meta">
+              <div><dt>执业证号</dt><dd>{lawyer.licenseNo}</dd></div>
+              <div><dt>执业年限</dt><dd>{lawyer.years} 年</dd></div>
+              <div><dt>教育背景</dt><dd>{lawyer.education[0]}</dd></div>
+            </dl>
+          </a>
+        ))}
+      </div>
+
+      <p class="roster-more"><a href="/lawyers/">查看全部律师与执业信息 →</a></p>
+    </div>
+  </section>
+
+  <section class="section section--paper2">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>针对具体问题的实务说明</h2>
+        <p>内容按可执行的标准写：说明规则、列出步骤、标注容易出错的地方。</p>
+      </div>
+
+      <div class="article-list">
+        {articles.map((article) => (
+          <a class="article-row" href={`/insights/${article.slug}/`}>
+            <div class="article-meta">
+              {article.publishedAt}
+              <br />
+              {article.category}
+            </div>
+            <div>
+              <h3>{article.title}</h3>
+              <p>{article.summary}</p>
+            </div>
+            <span class="article-arrow">阅读全文 →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <ContactBand />
+</BaseLayout>

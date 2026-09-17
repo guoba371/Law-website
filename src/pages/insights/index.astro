@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../site/layouts/SiteLayout.astro';
+import ContactBand from '../../site/components/ContactBand.astro';
+import { getSettings, listArticles } from '../../server/store';
+
+const firm = getSettings();
+const articles = listArticles({ publishedOnly: true });
+
+const title = '法律洞察';
+const description = `${firm.name}发布的法律实务文章，按可执行的标准说明规则、步骤与常见误区。`;
+---
+
+<BaseLayout {title} {description}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb"><a href="/">首页</a> / 法律洞察</nav>
+      <h1>法律洞察</h1>
+      <p class="lead">
+        文章按可执行的标准写：说明规则、列出步骤、标注容易出错的地方。
+        内容仅供一般性参考，个案请另行咨询。
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="section">
+      <div class="article-list">
+        {articles.map((article) => (
+          <a class="article-row" href={`/insights/${article.slug}/`}>
+            <div class="article-meta">
+              {article.publishedAt}
+              <br />
+              {article.category}
+            </div>
+            <div>
+              <h3>{article.title}</h3>
+              <p>{article.summary}</p>
+            </div>
+            <span class="article-arrow">阅读全文 →</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

@@ -1,0 +1,105 @@
+/*
+ * 文章正文排版
+ *
+ * 前台文章页和后台编辑器预览共用这一份，两边显示效果一致靠它。
+ * 改正文的字号、行距、引用块样式，前后台会同时变。
+ */
+
+.prose > * + * {
+  margin-top: 22px;
+}
+
+.prose h2 {
+  font-size: 22px;
+  margin-top: 52px;
+}
+
+.prose h3 {
+  font-size: 18px;
+  margin-top: 38px;
+}
+
+.prose p {
+  color: var(--ink-soft);
+}
+
+.prose img {
+  width: 100%;
+  border-radius: var(--radius);
+}
+
+.prose ul {
+  display: grid;
+  gap: 12px;
+}
+
+.prose ul li {
+  position: relative;
+  padding-left: 22px;
+  color: var(--ink-soft);
+}
+
+.prose ul li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.8em;
+  width: 8px;
+  height: 1px;
+  background: var(--brass);
+}
+
+.prose ol {
+  counter-reset: item;
+  display: grid;
+  gap: 16px;
+}
+
+.prose ol li {
+  counter-increment: item;
+  position: relative;
+  padding-left: 40px;
+  color: var(--ink-soft);
+}
+
+.prose ol li::before {
+  content: counter(item) ".";
+  position: absolute;
+  left: 0;
+  color: var(--brass-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 法律条文与引文：衬线在这里承担「正式文书」的语义 */
+.callout {
+  border-left: 3px solid var(--brass);
+  background: var(--brass-soft);
+  padding: 22px 26px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.callout strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* 正文里的引用块按法条排版处理：衬线、左侧黄铜竖线 */
+.prose blockquote {
+  margin: 0;
+  border-left: 3px solid var(--brass);
+  background: var(--brass-soft);
+  padding: 20px 26px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.prose blockquote > * + * {
+  margin-top: 10px;
+}

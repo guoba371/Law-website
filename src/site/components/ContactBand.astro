@@ -1,0 +1,21 @@
+---
+import { getSettings } from '../../server/store';
+
+const firm = getSettings();
+---
+
+<section class="contact-band">
+  <div class="wrap">
+    <div>
+      <h2>先了解情况，再决定是否委托</h2>
+      <p>
+        电话沟通时请准备好事发时间、已收到的书面材料与对方的处理意见。我们会先判断争议性质、
+        时效状态与可行路径，再说明是否需要进入委托程序。
+      </p>
+    </div>
+    <div class="contact-actions">
+      <span class="contact-phone">{firm.phoneDisplay}</span>
+      <a class="btn btn--light" href="/contact/">预约面谈</a>
+    </div>
+  </div>
+</section>

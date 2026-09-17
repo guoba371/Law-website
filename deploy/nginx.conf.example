@@ -1,0 +1,130 @@
+# Nginx 配置示例。把 example.com 换成你的域名，证书路径换成真实路径。
+#
+# 两种拓扑都写在下面，按你的备案情况选一种，另一种删掉或注释掉。
+#
+# 共同前提：
+#   1. 应用监听 127.0.0.1:4321（由 PORT / HOST 控制）
+#   2. dist/client 是完整静态站点
+#   3. data/ 目录必须可写，后台进程靠它保存文章和图片
+
+# ---------- HTTP 跳 HTTPS ----------
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name example.com www.example.com admin.example.com;
+
+    # 证书签发用的校验路径，不需要可以删掉
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# ---------- 拓扑一：主域名承载前台，/admin/ 与 /uploads/ 转发给应用 ----------
+#
+# 适合子域名暂时无法备案的情况。
+# 静态页面由 Nginx 直接返回，应用进程挂了前台也照常访问。
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name example.com www.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    root /srv/law-site/dist/client;
+    index index.html;
+
+    # 后台有 5MB 的图片上传，Nginx 默认限制是 1MB，不放开会在上传时返回 413
+    client_max_body_size 12m;
+
+    location /admin/ {
+        proxy_pass http://127.0.0.1:4321;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        # 应用靠这个头判断请求是不是 HTTPS，缺了它会话 cookie 会拿不到 Secure 标记
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 运行时上传的图片由应用响应，纯静态部署时也可以改成直接读 data/uploads
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:4321;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 构建产物里的文件名带哈希，可以长期缓存
+    location /_astro/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        try_files $uri $uri/index.html $uri/ =404;
+    }
+}
+
+# ---------- 拓扑二：后台独立子域名，整站转发给应用 ----------
+#
+# 推荐。主域名整站纯静态，不需要为 /admin/ 写任何回源规则。
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name admin.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    client_max_body_size 12m;
+
+    location = / {
+        return 302 /admin/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:4321;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ---------- 主域名（配合拓扑二）----------
+#
+# 走 CDN 时不需要这段，直接由 OSS/CDN 回源 dist/client 即可。
+# 不走 CDN 时用下面这段由 Nginx 直接返回静态文件。
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name example.com www.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    root /srv/law-site/dist/client;
+    index index.html;
+
+    location /_astro/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        try_files $uri $uri/index.html $uri/ =404;
+    }
+}

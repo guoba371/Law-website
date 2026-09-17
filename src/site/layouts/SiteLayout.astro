@@ -1,0 +1,87 @@
+---
+import '../../shared/base.css';
+import '../../shared/content.css';
+import '../styles/site.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { getSettings } from '../../server/store';
+
+const firm = getSettings();
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  schema?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const { title, description, canonical, schema } = Astro.props;
+const site = Astro.site ?? new URL('https://example.com');
+const canonicalURL = canonical ?? new URL(Astro.url.pathname, site).href;
+const schemas = schema ? (Array.isArray(schema) ? schema : [schema]) : [];
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LegalService',
+  name: firm.name,
+  telephone: firm.phone,
+  email: firm.email,
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'CN',
+    addressRegion: firm.city,
+    streetAddress: firm.address,
+  },
+  areaServed: ['上海', '杭州'],
+  url: site.href,
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} | {firm.name}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={`${title} | ${firm.name}`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta name="theme-color" content="#16283d" />
+    {firm.logo && <link rel="icon" href={firm.logo} />}
+
+    <script is:inline>
+      // 在首屏绘制前确定主题，避免刷新时的主题闪烁
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.dataset.theme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+
+    <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+    {schemas.map((item) => (
+      <script type="application/ld+json" set:html={JSON.stringify(item)} />
+    ))}
+  </head>
+
+  <body>
+    <SiteHeader />
+    <main>
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

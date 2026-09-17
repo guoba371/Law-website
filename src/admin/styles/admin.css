@@ -1,0 +1,729 @@
+/*
+ * 后台样式。变量来自 shared/base.css，正文排版来自 shared/content.css，
+ * 不复用前台 site.css 里的版式规则。
+ * 后台是密集的功能界面，与公开站点的编辑式排版是两套不同的东西。
+ */
+
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  background: var(--paper);
+}
+
+/* ---------- 侧边栏 ---------- */
+
+.admin-side {
+  border-right: 1px solid var(--line);
+  background: var(--paper-2);
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-brand strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.admin-brand span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.admin-nav {
+  display: grid;
+  gap: 2px;
+  padding: 0 12px;
+}
+
+.admin-nav a {
+  display: block;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--ink-soft);
+  border-left: 2px solid transparent;
+}
+
+.admin-nav a:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.admin-nav a[aria-current="page"] {
+  background: var(--paper);
+  border-left-color: var(--brass);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.admin-side-foot {
+  margin-top: auto;
+  padding: 16px 20px 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+
+.admin-side-foot a,
+.admin-side-foot button {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.admin-side-foot a:hover,
+.admin-side-foot button:hover {
+  color: var(--brass-ink);
+}
+
+/* ---------- 主区域 ---------- */
+
+.admin-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  min-width: 0;
+}
+
+.admin-topbar h1 {
+  font-size: 19px;
+}
+
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-content {
+  padding: 28px 32px 64px;
+  display: grid;
+  gap: 24px;
+  align-content: start;
+  max-width: 1160px;
+  min-width: 0;
+}
+
+/*
+ * 网格与弹性子项的 min-width 默认是 auto，会被宽表格撑开，
+ * 结果是窄屏出现整页横向滚动，而不是表格自己内部滚动。
+ */
+.admin-content > *,
+.panel,
+.metrics,
+.form-grid {
+  min-width: 0;
+}
+
+/* ---------- 面板 ---------- */
+
+.panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head h2 {
+  font-size: 15px;
+}
+
+.panel-head p {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.panel-body {
+  padding: 20px;
+}
+
+.panel-body + .panel-body {
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- 指标 ---------- */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.metric {
+  padding: 18px 20px;
+}
+
+.metric + .metric {
+  border-left: 1px solid var(--line);
+}
+
+.metric b {
+  display: block;
+  font-size: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+.metric span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---------- 表格 ---------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.table th {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  background: var(--paper-2);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover td {
+  background: var(--paper-2);
+}
+
+.table .cell-title {
+  font-weight: 500;
+}
+
+.table .cell-sub {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.table .cell-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table .cell-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.row-link {
+  color: var(--brass-ink);
+  font-size: 13px;
+}
+
+.row-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 状态 ---------- */
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.badge--published {
+  border-color: var(--brass);
+  color: var(--brass-ink);
+}
+
+.badge--draft {
+  color: var(--muted);
+}
+
+/* ---------- 表单 ---------- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field--wide {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.field small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.editor-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-status {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.upload-status[data-tone="busy"] {
+  color: var(--ink-soft);
+}
+
+.upload-status[data-tone="error"] {
+  color: var(--brass-ink);
+}
+
+.upload-status[data-tone="done"] {
+  color: var(--ink-soft);
+}
+
+/* ---------- 文章图片 ---------- */
+
+.media-block {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.media-block[hidden] {
+  display: none;
+}
+
+.media-head h3 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.media-head p {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.media-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.media-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.media-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
+}
+
+.media-meta {
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.media-name {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-actions {
+  display: flex;
+  gap: 12px;
+  font-size: 12.5px;
+}
+
+.media-actions button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.media-actions button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--brass);
+  box-shadow: 0 0 0 3px var(--brass-soft);
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.textarea--body {
+  min-height: 420px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  line-height: 1.8;
+}
+
+/* ---------- 正文编辑器：工具栏 + 双栏 ---------- */
+
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--line-strong);
+  border-bottom: 0;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--paper-2);
+}
+
+.tool {
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tool:hover {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.tool:active {
+  transform: translateY(1px);
+}
+
+.tool:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.tool--strong {
+  font-weight: 600;
+}
+
+.tool-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--line-strong);
+}
+
+.editor-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--line-strong);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
+
+.editor-pane {
+  min-width: 0;
+}
+
+.editor-pane--preview {
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.editor-split .textarea--body {
+  height: 560px;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  resize: none;
+  overflow-y: auto;
+}
+
+.editor-preview {
+  height: 560px;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.editor-preview:empty::before {
+  content: "正文写在这里，右侧会实时显示前台效果。";
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-actions .spacer {
+  margin-left: auto;
+}
+
+.btn--danger {
+  border-color: var(--line-strong);
+  color: var(--brass-ink);
+}
+
+.btn--danger:hover {
+  background: var(--brass-soft);
+  border-color: var(--brass);
+}
+
+/* ---------- 提示 ---------- */
+
+.notice {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--brass);
+  background: var(--brass-soft);
+  color: var(--ink-soft);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  border-radius: var(--radius);
+}
+
+.notice--muted {
+  border-left-color: var(--line-strong);
+  background: var(--paper-2);
+  color: var(--muted);
+}
+
+.empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.empty a {
+  color: var(--brass-ink);
+}
+
+.logo-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo-preview img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  padding: 6px;
+}
+
+.logo-preview .logo-empty {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ---------- 登录页 ---------- */
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background: var(--paper-2);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+.login-card h1 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.login-card > p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.login-card form {
+  display: grid;
+  gap: 14px;
+}
+
+.login-card .btn {
+  justify-content: center;
+}
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 900px) {
+  .admin-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-side {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+  }
+
+  .admin-nav {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+  }
+
+  .admin-side-foot {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .admin-topbar,
+  .admin-content {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric:nth-child(3) {
+    border-left: 0;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 窄屏下预览改为上下堆叠，同步滚动同时停用 */
+  .editor-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-pane--preview {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .editor-split .textarea--body,
+  .editor-preview {
+    height: 340px;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}

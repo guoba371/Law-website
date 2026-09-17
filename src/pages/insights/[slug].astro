@@ -1,0 +1,91 @@
+---
+import { marked } from 'marked';
+
+import BaseLayout from '../../site/layouts/SiteLayout.astro';
+import ContactBand from '../../site/components/ContactBand.astro';
+import { getSettings, listArticles } from '../../server/store';
+
+export function getStaticPaths() {
+  return listArticles({ publishedOnly: true }).map((article) => ({
+    params: { slug: article.slug },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+const firm = getSettings();
+
+// 目录取自正文里的二级标题，与渲染出的 h2 顺序一一对应
+const headings = [...article.body.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
+let headingIndex = 0;
+const bodyHtml = String(marked.parse(article.body, { async: false })).replace(
+  /<h2>/g,
+  () => `<h2 id="h${++headingIndex}">`,
+);
+
+const description = article.summary;
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: article.title,
+  description: article.summary,
+  datePublished: article.publishedAt,
+  dateModified: article.updatedAt,
+  author: { '@type': 'Person', name: article.author },
+  publisher: { '@type': 'Organization', name: firm.name },
+  mainEntityOfPage: Astro.url.href,
+};
+---
+
+<BaseLayout title={article.title} {description} schema={articleSchema}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb">
+        <a href="/">首页</a> / <a href="/insights/">法律洞察</a> / {article.category}
+      </nav>
+      <h1>{article.title}</h1>
+      <p class="lead">{article.summary}</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+      <article>
+        <p class="article-meta">
+          作者 {article.author} · 发布于 {article.publishedAt} · 更新于 {article.updatedAt} · 预计阅读 {article.readingTime} 分钟
+        </p>
+        <div class="prose" style="margin-top:32px" set:html={bodyHtml} />
+
+        <div class="author-block">
+          <div class="portrait">{article.author.slice(0, 1)}</div>
+          <div>
+            <h4>{article.author}</h4>
+            <p>{firm.name} · 本文内容基于现行法律规定与实务经验整理，个案请另行咨询。</p>
+          </div>
+        </div>
+      </article>
+
+      <aside class="sidebar">
+        {headings.length > 0 && (
+          <div class="sidebar-card">
+            <h3>本文目录</h3>
+            <ul class="toc">
+              {headings.map((heading, index) => (
+                <li><a href={`#h${index + 1}`}>{heading}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div class="sidebar-card">
+          <h3>个案情况不同</h3>
+          <p>本文说明的是一般规则，具体处理结果取决于事实与证据。</p>
+          <a class="btn btn--solid" href="/contact/">预约咨询</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

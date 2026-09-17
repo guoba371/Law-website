@@ -1,0 +1,69 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../admin/layouts/AdminLayout.astro';
+import ArticleForm from '../../../admin/components/ArticleForm.astro';
+import { parseArticleForm } from '../../../server/article-form';
+import { publicUrl } from '../../../server/site-url';
+import { deleteArticle, getArticle, listCategories, updateArticle } from '../../../server/store';
+import { practiceAreas } from '../../../content/firm';
+
+const id = Number(Astro.params.id);
+if (!Number.isInteger(id) || id <= 0) {
+  return new Response('无效的文章编号', { status: 400 });
+}
+
+let article = getArticle(id);
+if (!article) {
+  return new Response('找不到这篇文章', { status: 404 });
+}
+
+const categories = [...new Set([...practiceAreas.map((area) => area.name), ...listCategories()])];
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+
+  if (form.get('_action') === 'delete') {
+    deleteArticle(id);
+    return Astro.redirect('/admin/articles/?deleted=1');
+  }
+
+  const parsed = parseArticleForm(form, id);
+  if (parsed.ok) {
+    updateArticle(id, parsed.value);
+    return Astro.redirect('/admin/articles/?updated=1');
+  }
+
+  error = parsed.error;
+  article = { ...parsed.draft, id };
+}
+---
+
+<AdminLayout title="编辑文章" current="articles" description={`/insights/${article.slug}/`}>
+  <Fragment slot="actions">
+    <a
+      class="btn btn--ghost btn--sm"
+      href={publicUrl(`/insights/${article.slug}/`, Astro.url.host)}
+      target="_blank"
+      rel="noopener"
+    >前台预览</a>
+  </Fragment>
+
+  <ArticleForm {article} {categories} {error} submitLabel="保存修改" />
+
+  <div class="panel">
+    <div class="panel-body">
+      <div class="form-actions">
+        <div>
+          <p style="font-size:13.5px;color:var(--ink-soft);">删除这篇文章</p>
+          <p style="font-size:12.5px;color:var(--muted);">删除后无法恢复，前台在下次构建后移除该页面。</p>
+        </div>
+        <form method="post" class="spacer" onsubmit="return confirm('删除后无法恢复，确认删除这篇文章？')">
+          <input type="hidden" name="_action" value="delete" />
+          <button type="submit" class="btn btn--danger btn--sm">删除文章</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

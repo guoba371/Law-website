@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../../site/layouts/SiteLayout.astro';
+import ContactBand from '../../site/components/ContactBand.astro';
+import { localPages, practiceAreas, cities, lawyers } from '../../content/firm';
+import { getSettings } from '../../server/store';
+
+const firm = getSettings();
+
+export function getStaticPaths() {
+  return localPages.map((page) => ({
+    params: { city: page.citySlug, practice: page.practiceSlug },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+
+const city = cities.find((item) => item.slug === page.citySlug)!;
+const area = practiceAreas.find((item) => item.slug === page.practiceSlug)!;
+const relatedLawyers = lawyers.filter((lawyer) => lawyer.areas.includes(area.name));
+
+const title = page.headline;
+const description = `${firm.name}${city.name}地区${area.name}业务：${area.short}。说明本地受理机构、流程节奏与常见问题。`;
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [page.localFaq, ...area.faqs].map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+---
+
+<BaseLayout {title} {description} schema={faqSchema}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb">
+        <a href="/">首页</a> / <a href={`/practice/${area.slug}/`}>{area.name}</a> / {city.name}
+      </nav>
+      <h1>{page.headline}</h1>
+      <p class="lead">{page.intro}</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+      <article class="prose">
+        <h2>{city.name}地区的办理要点</h2>
+        <div class="local-facts">
+          {page.localPoints.map((point) => (
+            <div class="local-fact">
+              <b>{point.label}</b>
+              <span>{point.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <h2>受理与管辖</h2>
+        <p>{city.localNote}</p>
+
+        <h2>可以先确认的三个问题</h2>
+        <div class="callout">
+          <strong>在委托之前</strong>
+          {area.answerFirst}
+        </div>
+
+        <h2>{area.name}服务范围</h2>
+        <ul>
+          {area.scope.map((item) => <li>{item}</li>)}
+        </ul>
+
+        <h2>常见问题</h2>
+        <div class="faq-list">
+          <div class="faq-item">
+            <h3>{page.localFaq.q}</h3>
+            <p>{page.localFaq.a}</p>
+          </div>
+          {area.faqs.map((item) => (
+            <div class="faq-item">
+              <h3>{item.q}</h3>
+              <p>{item.a}</p>
+            </div>
+          ))}
+        </div>
+
+        <h2>下一步</h2>
+        <p>
+          联系时请说明事发城市、时间节点、对方主体名称以及已经收到的书面材料。
+          这些信息决定管辖机构的选择，也决定时效是否需要优先处理。
+        </p>
+      </article>
+
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <h3>在{city.name}需要法律帮助</h3>
+          <p>电话沟通用于判断争议性质与时效状态，不收取费用。</p>
+          <a class="btn btn--solid" href="/contact/">预约咨询</a>
+        </div>
+
+        {relatedLawyers.length > 0 && (
+          <div class="sidebar-card">
+            <h3>承办律师</h3>
+            <ul class="toc">
+              {relatedLawyers.map((lawyer) => (
+                <li><a href={`/lawyers/${lawyer.slug}/`}>{lawyer.name} · {lawyer.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div class="sidebar-card">
+          <h3>其他地区</h3>
+          <ul class="toc">
+            {localPages
+              .filter((item) => item.practiceSlug === area.slug && item.citySlug !== city.slug)
+              .map((item) => cities.find((c) => c.slug === item.citySlug))
+              .filter((item): item is (typeof cities)[number] => Boolean(item))
+              .map((item) => (
+                <li><a href={`/${item.slug}/${area.slug}/`}>{item.name}{area.name}律师</a></li>
+              ))}
+            <li><a href={`/practice/${area.slug}/`}>{area.name}业务总览</a></li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

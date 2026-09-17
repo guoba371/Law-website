@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../site/layouts/SiteLayout.astro';
+import ContactBand from '../site/components/ContactBand.astro';
+import { practiceAreas, cities } from '../content/firm';
+import { getSettings } from '../server/store';
+
+const firm = getSettings();
+const officeCities = cities.map((city) => city.name).join('、');
+
+const title = '关于我们';
+const description = `${firm.name}成立于 ${firm.founded} 年，现有执业律师 ${firm.lawyerCount} 名，在上海、杭州设有办公机构。`;
+---
+
+<BaseLayout {title} {description}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb"><a href="/">首页</a> / 关于我们</nav>
+      <h1>关于明衡</h1>
+      <p class="lead">
+        {firm.name}成立于 {firm.founded} 年，现有执业律师 {firm.lawyerCount} 名，其中合伙人 {firm.partnerCount} 名，
+        在{officeCities}设有办公机构。
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+      <article class="prose">
+        <h2>我们做什么</h2>
+        <p>
+          本所以争议解决为核心，业务集中在劳动与人事争议、婚姻家事、合同与商事纠纷、刑事辩护四个方向。
+          我们更愿意在委托之前把案件的困难讲清楚，包括哪些主张难以被支持、哪些证据无法取得、
+          以及诉讼周期可能带来的成本。
+        </p>
+
+        <h2>我们怎么工作</h2>
+        <p>
+          案件由合伙人负责，具体承办律师在委托前明确告知。每个阶段都有书面产出：
+          事实梳理、方案测算、证据目录与程序文件。当事人随时可以知道案件处在哪个阶段、
+          下一步需要准备什么材料。
+        </p>
+
+        <h2>业务领域</h2>
+        <ul>
+          {practiceAreas.map((area) => (
+            <li><a href={`/practice/${area.slug}/`}>{area.name}</a>：{area.short}</li>
+          ))}
+        </ul>
+
+        <h2>执业信息</h2>
+        <div class="statute-list">
+          <div class="statute"><b>执业许可证号</b>{firm.license}</div>
+          <div class="statute"><b>办公地址</b>{firm.address}</div>
+          <div class="statute"><b>咨询电话</b>{firm.phoneDisplay}</div>
+          <div class="statute"><b>工作时间</b>{firm.hours}</div>
+        </div>
+      </article>
+
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <h3>到所面谈</h3>
+          <p>{firm.address}</p>
+          <a class="btn btn--solid" href="/contact/">预约时间</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

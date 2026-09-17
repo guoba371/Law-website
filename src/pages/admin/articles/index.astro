@@ -1,0 +1,95 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../admin/layouts/AdminLayout.astro';
+import { deleteArticle, listArticles } from '../../../server/store';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const id = Number(form.get('id'));
+  if (Number.isInteger(id) && id > 0) deleteArticle(id);
+  return Astro.redirect('/admin/articles/?deleted=1');
+}
+
+const statusFilter = Astro.url.searchParams.get('status') ?? 'all';
+const all = listArticles();
+const articles =
+  statusFilter === 'published'
+    ? all.filter((article) => article.status === 'published')
+    : statusFilter === 'draft'
+      ? all.filter((article) => article.status === 'draft')
+      : all;
+
+const filters = [
+  { key: 'all', label: `全部 ${all.length}` },
+  { key: 'published', label: `已发布 ${all.filter((a) => a.status === 'published').length}` },
+  { key: 'draft', label: `草稿 ${all.filter((a) => a.status === 'draft').length}` },
+];
+---
+
+<AdminLayout title="文章" current="articles" description="草稿不会出现在前台，已发布的文章需要在重新构建后生效。">
+  <Fragment slot="actions">
+    <a class="btn btn--solid btn--sm" href="/admin/articles/new/">新建文章</a>
+  </Fragment>
+
+  {Astro.url.searchParams.get('deleted') === '1' && <p class="notice">文章已删除。</p>}
+  {Astro.url.searchParams.get('created') === '1' && <p class="notice">文章已创建。前台需要重新构建后才会出现这个页面。</p>}
+  {Astro.url.searchParams.get('updated') === '1' && <p class="notice">文章已保存。前台需要重新构建后才会更新。</p>}
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="admin-topbar-actions">
+        {filters.map((filter) => (
+          <a
+            class={`btn btn--sm ${statusFilter === filter.key ? 'btn--solid' : 'btn--ghost'}`}
+            href={filter.key === 'all' ? '/admin/articles/' : `/admin/articles/?status=${filter.key}`}
+          >
+            {filter.label}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {articles.length === 0 ? (
+      <div class="empty">这个筛选下没有文章。<a href="/admin/articles/new/">新建一篇</a></div>
+    ) : (
+      <table class="table">
+        <thead>
+          <tr>
+            <th>标题</th>
+            <th>分类</th>
+            <th>作者</th>
+            <th>状态</th>
+            <th>发布日期</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {articles.map((article) => (
+            <tr>
+              <td>
+                <a class="row-link cell-title" href={`/admin/articles/${article.id}/`}>{article.title}</a>
+                <span class="cell-sub">/insights/{article.slug}/</span>
+              </td>
+              <td>{article.category}</td>
+              <td>{article.author}</td>
+              <td>
+                <span class={`badge ${article.status === 'published' ? 'badge--published' : 'badge--draft'}`}>
+                  {article.status === 'published' ? '已发布' : '草稿'}
+                </span>
+              </td>
+              <td class="cell-num">{article.publishedAt}</td>
+              <td class="cell-actions">
+                <a class="row-link" href={`/admin/articles/${article.id}/`}>编辑</a>
+                <form method="post" style="display:inline" onsubmit="return confirm('删除后无法恢复，确认删除这篇？')">
+                  <input type="hidden" name="id" value={article.id} />
+                  <button type="submit" class="row-link" style="margin-left:12px;">删除</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</AdminLayout>

@@ -1,0 +1,90 @@
+---
+import '../../shared/base.css';
+import '../../shared/content.css';
+import '../styles/admin.css';
+import { publicUrl } from '../../server/site-url';
+import { getSettings } from '../../server/store';
+
+interface Props {
+  title: string;
+  current: 'dashboard' | 'articles' | 'settings';
+  description?: string;
+}
+
+const { title, current, description } = Astro.props;
+const settings = getSettings();
+
+const navItems = [
+  { key: 'dashboard', href: '/admin/', label: '总览' },
+  { key: 'articles', href: '/admin/articles/', label: '文章' },
+  { key: 'settings', href: '/admin/settings/', label: '站点设置' },
+];
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} | {settings.name} 后台</title>
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.dataset.theme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div class="admin-shell">
+      <aside class="admin-side">
+        <div class="admin-brand">
+          <strong>{settings.name}</strong>
+          <span>内容管理后台</span>
+        </div>
+
+        <nav class="admin-nav">
+          {navItems.map((item) => (
+            <a href={item.href} aria-current={current === item.key ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <div class="admin-side-foot">
+          <a href={publicUrl('/', Astro.url.host)} target="_blank" rel="noopener">查看站点 →</a>
+          <form method="post" action="/admin/logout/">
+            <button type="submit" class="row-link">退出登录</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar">
+          <div>
+            <h1>{title}</h1>
+            {description && <p style="font-size:13px;color:var(--muted);margin-top:4px;">{description}</p>}
+          </div>
+          <div class="admin-topbar-actions">
+            <slot name="actions" />
+          </div>
+        </header>
+
+        <main class="admin-content">
+          <slot />
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

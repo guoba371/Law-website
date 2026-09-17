@@ -1,0 +1,155 @@
+---
+import BaseLayout from '../../site/layouts/SiteLayout.astro';
+import ContactBand from '../../site/components/ContactBand.astro';
+import { practiceAreas, lawyers, localPages, cities } from '../../content/firm';
+import { getSettings, listArticles } from '../../server/store';
+
+const firm = getSettings();
+const articles = listArticles({ publishedOnly: true });
+
+export function getStaticPaths() {
+  return practiceAreas.map((area) => ({
+    params: { slug: area.slug },
+    props: { area },
+  }));
+}
+
+const { area } = Astro.props;
+
+const relatedLawyers = lawyers.filter((lawyer) => lawyer.areas.includes(area.name));
+const relatedArticles = articles.filter((article) => article.category === area.name);
+const relatedCities = localPages
+  .filter((page) => page.practiceSlug === area.slug)
+  .map((page) => cities.find((city) => city.slug === page.citySlug))
+  .filter((city): city is (typeof cities)[number] => Boolean(city));
+
+const title = `${area.name}律师`;
+const description = `${firm.name}${area.name}业务：${area.short}。说明处理流程、法律依据与常见问题。`;
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: area.faqs.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '首页', item: Astro.site?.href },
+    { '@type': 'ListItem', position: 2, name: '业务领域', item: new URL('/practice/labor/', Astro.site).href },
+    { '@type': 'ListItem', position: 3, name: area.name, item: Astro.url.href },
+  ],
+};
+---
+
+<BaseLayout {title} {description} schema={[faqSchema, breadcrumbSchema]}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb">
+        <a href="/">首页</a> / <a href="/practice/">业务领域</a> / {area.name}
+      </nav>
+      <h1>{area.name}律师</h1>
+      <p class="lead">{area.summary}</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+      <article class="prose">
+        <div class="callout">
+          <strong>先回答核心问题</strong>
+          {area.answerFirst}
+        </div>
+
+        <h2>我们处理哪些具体问题</h2>
+        <ul>
+          {area.scope.map((item) => <li>{item}</li>)}
+        </ul>
+
+        <h2>案件推进流程</h2>
+        <ol>
+          {area.process.map((item) => (
+            <li>
+              <strong>{item.step}</strong>
+              <br />
+              {item.detail}
+            </li>
+          ))}
+        </ol>
+
+        <h2>主要法律依据</h2>
+        <div class="statute-list">
+          {area.statutes.map((statute) => (
+            <div class="statute">
+              <b>{statute.label}</b>
+              {statute.text}
+            </div>
+          ))}
+        </div>
+        <p>
+          <small>法律条文可能被修订，具体适用以案件发生时的有效版本为准。</small>
+        </p>
+
+        <h2>常见问题</h2>
+        <div class="faq-list">
+          {area.faqs.map((item) => (
+            <div class="faq-item">
+              <h3>{item.q}</h3>
+              <p>{item.a}</p>
+            </div>
+          ))}
+        </div>
+
+        {relatedCities.length > 0 && (
+          <>
+            <h2>按地区查看</h2>
+            <ul>
+              {relatedCities.map((city) => (
+                <li>
+                  <a href={`/${city.slug}/${area.slug}/`}>{city.name}{area.name}律师</a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </article>
+
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <h3>需要先判断是否值得起诉</h3>
+          <p>说明事发时间、争议金额与已收到的书面材料，我们会先判断时效与可行路径。</p>
+          <a class="btn btn--solid" href="/contact/">预约咨询</a>
+        </div>
+
+        {relatedLawyers.length > 0 && (
+          <div class="sidebar-card">
+            <h3>承办律师</h3>
+            <ul class="toc">
+              {relatedLawyers.map((lawyer) => (
+                <li><a href={`/lawyers/${lawyer.slug}/`}>{lawyer.name} · {lawyer.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {relatedArticles.length > 0 && (
+          <div class="sidebar-card">
+            <h3>相关文章</h3>
+            <ul class="toc">
+              {relatedArticles.map((article) => (
+                <li><a href={`/insights/${article.slug}/`}>{article.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </aside>
+    </div>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

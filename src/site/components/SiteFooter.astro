@@ -1,0 +1,61 @@
+---
+import { practiceAreas, cities } from '../../content/firm';
+import { getSettings } from '../../server/store';
+
+const firm = getSettings();
+const officeCities = cities.map((city) => city.name).join('、');
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>{firm.name}</h4>
+        <p class="footer-about">
+          成立于 {firm.founded} 年，现有执业律师 {firm.lawyerCount} 名，其中合伙人 {firm.partnerCount} 名，
+          在{officeCities}设有办公机构，主要办理{practiceAreas.map((area) => area.name).join('、')}业务。
+        </p>
+      </div>
+
+      <div>
+        <h4>业务领域</h4>
+        <ul>
+          {practiceAreas.map((area) => <li><a href={`/practice/${area.slug}/`}>{area.name}</a></li>)}
+        </ul>
+      </div>
+
+      <div>
+        <h4>了解我们</h4>
+        <ul>
+          <li><a href="/lawyers/">律师团队</a></li>
+          <li><a href="/about/">律所简介</a></li>
+          <li><a href="/insights/">法律洞察</a></li>
+          <li><a href="/contact/">联系方式</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>联系方式</h4>
+        <ul>
+          <li>电话：{firm.phoneDisplay}</li>
+          <li>邮箱：{firm.email}</li>
+          <li>地址：{firm.address}</li>
+          <li>时间：{firm.hours}</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      免责声明：本网站所载内容仅供一般性参考，不构成对任何具体事项的法律意见，亦不构成律师与委托人之间的委托关系。
+      个案情况不同，处理结果取决于具体事实与证据，本所不对任何案件结果作出承诺。
+    </p>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="wrap">
+      <span>{firm.license}</span>
+      <span><a href="https://beian.miit.gov.cn/" rel="nofollow noopener" target="_blank">{firm.filing}</a></span>
+      <span>© {new Date().getFullYear()} {firm.name} 版权所有</span>
+    </div>
+  </div>
+</footer>

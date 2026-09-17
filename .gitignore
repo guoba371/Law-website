@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+data/
+.env
+.DS_Store
+*.log
+
+# 内部策略文档（站群结构、SEO 打法、合规红线）。
+# 这个仓库是公开的，默认不提交。要公开就删掉下面这行。
+docs/

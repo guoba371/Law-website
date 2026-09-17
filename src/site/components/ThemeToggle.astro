@@ -1,0 +1,47 @@
+---
+import sunIcon from '@phosphor-icons/core/assets/regular/sun.svg?raw';
+import moonIcon from '@phosphor-icons/core/assets/regular/moon.svg?raw';
+---
+
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  aria-pressed="false"
+  aria-label="切换到深色模式"
+  title="切换深浅主题"
+>
+  <span class="theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true" set:html={moonIcon} />
+  <span class="theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true" set:html={sunIcon} />
+</button>
+
+<script>
+  const root = document.documentElement;
+  const buttons = document.querySelectorAll<HTMLElement>('[data-theme-toggle]');
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+  function sync(theme: string) {
+    const isDark = theme === 'dark';
+    root.dataset.theme = isDark ? 'dark' : 'light';
+    buttons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(isDark));
+      button.setAttribute('aria-label', isDark ? '切换到浅色模式' : '切换到深色模式');
+    });
+    themeMeta?.setAttribute('content', isDark ? '#101319' : '#16283d');
+  }
+
+  // 内联脚本已经把 data-theme 写好，这里只同步按钮状态，不写入存储
+  sync(root.dataset.theme === 'dark' ? 'dark' : 'light');
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      sync(next);
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        // 隐私模式下 localStorage 不可用，切换仍然生效，只是不持久化
+      }
+    });
+  });
+</script>

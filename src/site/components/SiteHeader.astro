@@ -1,0 +1,48 @@
+---
+import { nav } from '../../content/firm';
+import { getSettings } from '../../server/store';
+import ThemeToggle from './ThemeToggle.astro';
+
+const firm = getSettings();
+---
+
+<div class="topbar">
+  <div class="wrap">
+    <span>{firm.license}</span>
+    <span>咨询电话 <strong>{firm.phoneDisplay}</strong> · {firm.hours}</span>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/">
+      {firm.logo ? (
+        <img class="brand-logo" src={firm.logo} alt={`${firm.name} Logo`} />
+      ) : (
+        <span class="brand-mark">{(firm.shortName || firm.name).slice(0, 1)}</span>
+      )}
+      <span class="brand-name">{firm.name}</span>
+    </a>
+
+    <nav class="nav">
+      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+
+    <div class="header-actions">
+      <span class="header-phone">
+        <span>咨询热线</span>
+        {firm.phoneDisplay}
+      </span>
+      <ThemeToggle />
+      <a class="btn btn--solid btn--sm" href="/contact/">预约咨询</a>
+
+      <details class="menu">
+        <summary>菜单</summary>
+        <div class="menu-panel">
+          {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+          <a href="/contact/">预约咨询</a>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>

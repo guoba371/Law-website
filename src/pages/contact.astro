@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../site/layouts/SiteLayout.astro';
+import { getSettings } from '../server/store';
+
+const firm = getSettings();
+
+const title = '联系方式';
+const description = `联系${firm.name}：电话 ${firm.phoneDisplay}，地址 ${firm.address}。`;
+---
+
+<BaseLayout {title} {description}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb"><a href="/">首页</a> / 联系方式</nav>
+      <h1>联系我们</h1>
+      <p class="lead">
+        电话沟通用于判断争议性质、管辖机构与时效状态。请在联系前准备好相关书面材料，
+        这会让第一次沟通的有效性明显提高。
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="section">
+      <div class="contact-grid">
+        <div class="contact-item">
+          <b>咨询电话</b>
+          <span>{firm.phoneDisplay}</span>
+        </div>
+        <div class="contact-item">
+          <b>电子邮箱</b>
+          <span>{firm.email}</span>
+        </div>
+        <div class="contact-item">
+          <b>办公地址</b>
+          <span>{firm.address}</span>
+        </div>
+        <div class="contact-item">
+          <b>工作时间</b>
+          <span>{firm.hours}</span>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h2>联系前建议准备的材料</h2>
+        <p>这些信息决定管辖机构的选择，也决定时效是否需要优先处理。</p>
+      </div>
+      <div class="prose">
+        <ul>
+          <li>与争议有关的合同、协议或书面通知</li>
+          <li>事发时间线与关键沟通记录</li>
+          <li>已经收到的对方意见或处理决定</li>
+          <li>涉及金额的相关凭证</li>
+        </ul>
+        <div class="callout">
+          <strong>关于费用与结果</strong>
+          本所不在咨询阶段对案件结果作出任何承诺。律师费标准、收费方式与付款节点在委托前以书面形式明确。
+          首次电话沟通不收取费用，沟通本身不构成委托关系。
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

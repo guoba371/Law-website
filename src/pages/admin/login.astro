@@ -1,0 +1,90 @@
+---
+export const prerender = false;
+
+import '../../shared/base.css';
+import '../../admin/styles/admin.css';
+import {
+  SESSION_COOKIE,
+  SESSION_COOKIE_PATH,
+  createSessionToken,
+  isSecureRequest,
+  isUsingDefaultPassword,
+  sessionMaxAgeSeconds,
+  verifyPassword,
+} from '../../server/auth';
+import { getSettings } from '../../server/store';
+
+const settings = getSettings();
+const nextParam = Astro.url.searchParams.get('next') ?? '/admin/';
+const next = nextParam.startsWith('/admin') ? nextParam : '/admin/';
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const password = String(form.get('password') ?? '');
+
+  if (verifyPassword(password)) {
+    Astro.cookies.set(SESSION_COOKIE, createSessionToken(), {
+      path: SESSION_COOKIE_PATH,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isSecureRequest(Astro.request, Astro.url),
+      maxAge: sessionMaxAgeSeconds,
+    });
+    return Astro.redirect(next);
+  }
+
+  error = '密码不正确，请重新输入。';
+}
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>登录 | {settings.name} 后台</title>
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.dataset.theme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div class="login-shell">
+      <div class="login-card">
+        <h1>{settings.name}</h1>
+        <p>内容管理后台</p>
+
+        <form method="post">
+          <div class="field">
+            <label for="password">登录密码</label>
+            <input id="password" name="password" type="password" class="input" required autofocus autocomplete="current-password" />
+          </div>
+          {error && <p class="notice">{error}</p>}
+          <button type="submit" class="btn btn--solid">登录</button>
+        </form>
+
+        {isUsingDefaultPassword() && (
+          <p class="notice notice--muted" style="margin-top:20px;">
+            当前使用的是内置初始密码。上线前请设置环境变量 <code>ADMIN_PASSWORD</code> 替换它。
+          </p>
+        )}
+      </div>
+    </div>
+  </body>
+</html>

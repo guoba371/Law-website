@@ -1,0 +1,234 @@
+/*
+ * 前后台共用的基础层
+ *
+ * 品牌变量、reset、焦点样式、动效降级，以及按钮这类两边都在用的组件。
+ * 改配色只改这里的 :root，前台和后台会同时生效。
+ * 这里不放任何版式规则，前台版式在 site/styles/site.css，后台在 admin/styles/admin.css。
+ */
+
+/*
+ * 设计基线
+ * Design read: 信任优先的专业服务站点，受众是有真实纠纷的当事人。
+ * Dials: VARIANCE 4 / MOTION 3 / DENSITY 5
+ *
+ * 三条锁定规则，改动时不要打破：
+ * 1. 形状锁：全局统一 2px 圆角，不允许出现 pill 按钮或大圆角卡片。
+ * 2. 颜色锁：唯一强调色是黄铜色，全站不得出现第二个强调色。
+ * 3. 字体锁：无衬线承担界面与标题，衬线只用于法律条文和律所字标。
+ *    中文显示字体不使用 Web Font，系统字体栈在 Windows / macOS / Android 上都有可用回退。
+ */
+
+:root {
+  color-scheme: light;
+
+  /* 中性色：冷灰偏墨，不使用纯黑纯白 */
+  --ink: #12161c;
+  --ink-soft: #333b47;
+  --muted: #646b77;
+  --line: #e2ded6;
+  --line-strong: #c9c3b7;
+  --paper: #faf9f6;
+  --paper-2: #f3f1ea;
+  --surface: #fdfcfa;
+
+  /* 深色带：顶部信息条与页尾咨询条共用 */
+  --band-bg: #16283d;
+  --band-fg: #f2efe9;
+  --band-fg-dim: rgba(242, 239, 233, 0.78);
+  --on-band-line: rgba(242, 239, 233, 0.28);
+
+  /* 强调色：黄铜。brass 用于线条，brass-ink 用于文字以保证对比度 */
+  --brass: #8a6a3b;
+  --brass-ink: #6b4f26;
+  --brass-soft: #f2ebdf;
+
+  /* 动作色：实心按钮。深色模式下自动反转，无需改组件 */
+  --action-bg: #12161c;
+  --action-fg: #faf9f6;
+  --action-bg-hover: #1f3040;
+
+  --shadow: 0 18px 40px rgba(18, 22, 28, 0.08);
+
+  --radius: 2px;
+  --maxw: 1140px;
+
+  /* 正文用无衬线；衬线仅用于法律条文、字标、姓氏字牌 */
+  --font-sans: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Source Han Sans SC",
+    "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  --font-serif: "Songti SC", "STSong", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+}
+
+/*
+ * 深色主题由 <html data-theme="dark"> 驱动，不由 prefers-color-scheme 驱动。
+ * 原因：手动切换需要一个单一的事实来源，媒体查询和属性选择器并存会导致两处维护。
+ * BaseLayout 里的内联脚本在首屏绘制前就把 data-theme 写好，初始值取自系统偏好。
+ * 关闭 JavaScript 时页面固定为浅色，功能不受影响。
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ink: #e9e6e0;
+  --ink-soft: #c3bfb7;
+  --muted: #949ba6;
+  --line: #2a2f39;
+  --line-strong: #3b414d;
+  --paper: #101319;
+  --paper-2: #161a21;
+  --surface: #171b23;
+
+  --band-bg: #1b2130;
+  --band-fg: #f0ede7;
+  --band-fg-dim: rgba(240, 237, 231, 0.76);
+  --on-band-line: rgba(240, 237, 231, 0.22);
+
+  --brass: #b08b52;
+  --brass-ink: #c8a56b;
+  --brass-soft: #241f16;
+
+  --action-bg: #e9e6e0;
+  --action-fg: #101319;
+  --action-bg-hover: #cdc7bd;
+
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.005em;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+dl,
+dd {
+  margin: 0;
+}
+
+:where(a, button, summary, input, textarea, select):focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- 按钮（前后台共用）---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.12s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--solid {
+  background: var(--action-bg);
+  border-color: var(--action-bg);
+  color: var(--action-fg);
+}
+
+.btn--solid:hover {
+  background: var(--action-bg-hover);
+  border-color: var(--action-bg-hover);
+}
+
+.btn--ghost {
+  color: var(--ink);
+}
+
+.btn--ghost:hover {
+  background: var(--action-bg);
+  border-color: var(--action-bg);
+  color: var(--action-fg);
+}
+
+.btn--brass {
+  border-color: var(--brass);
+  color: var(--brass-ink);
+}
+
+.btn--brass:hover {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: var(--action-fg);
+}
+
+.btn--sm {
+  padding: 9px 18px;
+  font-size: 13px;
+}
+
+.btn--light {
+  border-color: var(--on-band-line);
+  color: var(--band-fg);
+}
+
+.btn--light:hover {
+  background: var(--band-fg);
+  border-color: var(--band-fg);
+  color: var(--band-bg);
+}

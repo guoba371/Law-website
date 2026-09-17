@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../site/layouts/SiteLayout.astro';
+import ContactBand from '../../site/components/ContactBand.astro';
+import { lawyers } from '../../content/firm';
+import { getSettings } from '../../server/store';
+
+const firm = getSettings();
+
+const title = '律师团队';
+const description = `${firm.name}现有执业律师 ${firm.lawyerCount} 名，以下为部分合伙人及承办律师的执业信息。`;
+---
+
+<BaseLayout {title} {description}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb"><a href="/">首页</a> / 律师团队</nav>
+      <h1>律师团队</h1>
+      <p class="lead">
+        本所现有执业律师 {firm.lawyerCount} 名，其中合伙人 {firm.partnerCount} 名。
+        每位律师的执业证号均在本页公示，可向司法行政机关核对。
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="section">
+      <div class="roster">
+        {lawyers.map((lawyer) => (
+          <a class="roster-item" href={`/lawyers/${lawyer.slug}/`}>
+            <span class="portrait">{lawyer.initial}</span>
+            <div>
+              <h3>{lawyer.name}</h3>
+              <p class="roster-title">{lawyer.title}</p>
+              <dl class="roster-meta">
+                <div><dt>主要领域</dt><dd>{lawyer.areas.join('、')}</dd></div>
+              </dl>
+            </div>
+            <dl class="roster-meta">
+              <div><dt>执业证号</dt><dd>{lawyer.licenseNo}</dd></div>
+              <div><dt>执业年限</dt><dd>{lawyer.years} 年</dd></div>
+              <div><dt>教育背景</dt><dd>{lawyer.education[0]}</dd></div>
+            </dl>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

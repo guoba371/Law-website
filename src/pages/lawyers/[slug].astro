@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../../site/layouts/SiteLayout.astro';
+import ContactBand from '../../site/components/ContactBand.astro';
+import { lawyers } from '../../content/firm';
+import { getSettings, listArticles } from '../../server/store';
+
+const firm = getSettings();
+const articles = listArticles({ publishedOnly: true });
+
+export function getStaticPaths() {
+  return lawyers.map((lawyer) => ({
+    params: { slug: lawyer.slug },
+    props: { lawyer },
+  }));
+}
+
+const { lawyer } = Astro.props;
+
+const writtenArticles = articles.filter((article) => article.author === lawyer.name);
+
+const title = `${lawyer.name.replace(/\s/g, '')} 律师`;
+const description = `${firm.name}${lawyer.title}${lawyer.name.replace(/\s/g, '')}，执业 ${lawyer.years} 年，主要办理${lawyer.areas.join('、')}业务。执业证号 ${lawyer.licenseNo}。`;
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Attorney',
+  name: lawyer.name.replace(/\s/g, ''),
+  jobTitle: lawyer.title,
+  worksFor: { '@type': 'Organization', name: firm.name },
+  alumniOf: lawyer.education.map((item) => ({ '@type': 'EducationalOrganization', name: item })),
+  knowsAbout: lawyer.areas,
+  telephone: firm.phone,
+};
+---
+
+<BaseLayout {title} {description} schema={personSchema}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb">
+        <a href="/">首页</a> / <a href="/lawyers/">律师团队</a> / {lawyer.name}
+      </nav>
+      <h1>{lawyer.name} · {lawyer.title}</h1>
+      <p class="lead">{lawyer.bio}</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+      <article class="prose">
+        <h2>执业信息</h2>
+        <div class="statute-list">
+          <div class="statute"><b>执业证号</b>{lawyer.licenseNo}</div>
+          <div class="statute"><b>执业年限</b>{lawyer.years} 年</div>
+          <div class="statute"><b>主要领域</b>{lawyer.areas.join('、')}</div>
+          <div class="statute"><b>教育背景</b>{lawyer.education.join('；')}</div>
+          <div class="statute"><b>社会职务</b>{lawyer.roles.join('；')}</div>
+        </div>
+
+        <h2>主要执业领域</h2>
+        <ul>
+          {lawyer.areas.map((area) => <li>{area}</li>)}
+        </ul>
+
+        <h2>代表性案件</h2>
+        <div class="case-list">
+          {lawyer.cases.map((item) => (
+            <div class="case-item">
+              <h4>{item.title}</h4>
+              <p>{item.detail}</p>
+            </div>
+          ))}
+        </div>
+        <p>
+          <small>案件信息已作脱敏处理。既往案件结果不构成对任何其他案件处理结果的承诺。</small>
+        </p>
+
+        {writtenArticles.length > 0 && (
+          <>
+            <h2>撰写的文章</h2>
+            <ul>
+              {writtenArticles.map((article) => (
+                <li><a href={`/insights/${article.slug}/`}>{article.title}</a></li>
+              ))}
+            </ul>
+          </>
+        )}
+      </article>
+
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <h3>预约 {lawyer.name} 律师</h3>
+          <p>请在沟通时说明事发时间、争议金额与已收到的书面材料。</p>
+          <a class="btn btn--solid" href="/contact/">预约咨询</a>
+        </div>
+
+        <div class="sidebar-card">
+          <h3>其他律师</h3>
+          <ul class="toc">
+            {lawyers
+              .filter((item) => item.slug !== lawyer.slug)
+              .map((item) => (
+                <li><a href={`/lawyers/${item.slug}/`}>{item.name} · {item.title}</a></li>
+              ))}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

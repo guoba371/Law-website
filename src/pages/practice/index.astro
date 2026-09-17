@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../site/layouts/SiteLayout.astro';
+import ContactBand from '../../site/components/ContactBand.astro';
+import { practiceAreas, lawyers } from '../../content/firm';
+import { getSettings } from '../../server/store';
+
+const firm = getSettings();
+
+const title = '业务领域';
+const description = `${firm.name}的主要业务领域：劳动与人事争议、婚姻家事、合同与商事纠纷、刑事辩护。`;
+---
+
+<BaseLayout {title} {description}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb"><a href="/">首页</a> / 业务领域</nav>
+      <h1>业务领域</h1>
+      <p class="lead">
+        本所业务集中在四个方向。每个领域都按同一套流程推进：先梳理事实与证据，
+        再测算可行方案，最后才进入程序。
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="section">
+      <div class="area-grid">
+        {practiceAreas.map((area) => (
+          <a class="area-item" href={`/practice/${area.slug}/`}>
+            <h3>{area.name}</h3>
+            <p>{area.summary}</p>
+            <span class="area-more">了解处理方式 →</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>各领域的负责律师</h2>
+      </div>
+      <div class="roster">
+        {lawyers.map((lawyer) => (
+          <a class="roster-item" href={`/lawyers/${lawyer.slug}/`}>
+            <span class="portrait">{lawyer.initial}</span>
+            <div>
+              <h3>{lawyer.name}</h3>
+              <p class="roster-title">{lawyer.title}</p>
+              <dl class="roster-meta">
+                <div><dt>主要领域</dt><dd>{lawyer.areas.join('、')}</dd></div>
+              </dl>
+            </div>
+            <dl class="roster-meta">
+              <div><dt>执业年限</dt><dd>{lawyer.years} 年</dd></div>
+              <div><dt>教育背景</dt><dd>{lawyer.education[0]}</dd></div>
+            </dl>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <ContactBand />
+</BaseLayout>

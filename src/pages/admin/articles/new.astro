@@ -1,0 +1,29 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../admin/layouts/AdminLayout.astro';
+import ArticleForm from '../../../admin/components/ArticleForm.astro';
+import { emptyArticle, parseArticleForm } from '../../../server/article-form';
+import { createArticle, listCategories } from '../../../server/store';
+import { practiceAreas } from '../../../content/firm';
+
+const categories = [...new Set([...practiceAreas.map((area) => area.name), ...listCategories()])];
+
+let error = '';
+let draft = emptyArticle();
+draft.category = categories[0] ?? '';
+
+if (Astro.request.method === 'POST') {
+  const parsed = parseArticleForm(await Astro.request.formData());
+  if (parsed.ok) {
+    createArticle(parsed.value);
+    return Astro.redirect('/admin/articles/?created=1');
+  }
+  error = parsed.error;
+  draft = parsed.draft;
+}
+---
+
+<AdminLayout title="新建文章" current="articles">
+  <ArticleForm article={{ ...draft, id: 0 }} {categories} {error} submitLabel="保存文章" />
+</AdminLayout>

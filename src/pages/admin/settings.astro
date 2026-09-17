@@ -1,0 +1,158 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../admin/layouts/AdminLayout.astro';
+import { SETTING_KEYS, type SettingKey } from '../../server/db';
+import { LOGO_TYPES, removeUploadFile, saveImageUpload } from '../../server/media';
+import { publicUrl } from '../../server/site-url';
+import { getSettings, saveSettings } from '../../server/store';
+
+const MAX_LOGO_BYTES = 1024 * 1024;
+
+let settings = getSettings();
+let error = '';
+const saved = Astro.url.searchParams.get('saved') === '1';
+
+/*
+ * 表单字段名与数据库键名在这里分开。
+ * 原因：Chromium 的自动填充启发式会按输入框的 id、name、type 匹配 phone 与 email，
+ * 命中后直接把 value 属性剥离，保存时就会把这两个字段写成空值。
+ * 实测 autocomplete="off" 拦不住，改字段名和 type 才有效。
+ */
+const FORM_FIELD_NAMES: Partial<Record<SettingKey, string>> = {
+  phone: 'contactDial',
+  phoneDisplay: 'contactDialShown',
+  email: 'contactInbox',
+};
+
+const formNameOf = (key: SettingKey) => FORM_FIELD_NAMES[key] ?? key;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const values: Partial<Record<SettingKey, string>> = {};
+
+  for (const key of SETTING_KEYS) {
+    if (key === 'logo') continue;
+    const fieldName = formNameOf(key);
+    if (form.has(fieldName)) values[key] = String(form.get(fieldName) ?? '').trim();
+  }
+
+  const file = form.get('logoFile');
+  const removeLogo = form.get('removeLogo') === 'on';
+
+  if (file instanceof File && file.size > 0) {
+    const result = await saveImageUpload(file, {
+      prefix: 'logo',
+      allowed: LOGO_TYPES,
+      maxBytes: MAX_LOGO_BYTES,
+    });
+
+    if (result.ok) {
+      await removeUploadFile(settings.logo);
+      values.logo = result.url;
+    } else {
+      error = result.error;
+    }
+  } else if (removeLogo && settings.logo) {
+    await removeUploadFile(settings.logo);
+    values.logo = '';
+  }
+
+  if (!error) {
+    saveSettings(values);
+    return Astro.redirect('/admin/settings/?saved=1');
+  }
+
+  settings = getSettings();
+}
+
+const fields: { key: SettingKey; label: string; hint?: string; type?: string }[] = [
+  { key: 'name', label: '律所名称', hint: '显示在页头字标、页脚和结构化数据里。' },
+  { key: 'shortName', label: '律所简称', hint: '用于字牌和较短的场景。' },
+  { key: 'city', label: '所在城市' },
+  { key: 'license', label: '执业许可证号', hint: '显示在顶部信息条和页脚。' },
+  { key: 'filing', label: 'ICP 备案号' },
+  { key: 'founded', label: '成立年份', type: 'number' },
+  { key: 'address', label: '办公地址' },
+  { key: 'phone', label: '咨询电话（拨号用）', hint: '只填数字和连字符，例如 021-6000-0000。' },
+  { key: 'phoneDisplay', label: '咨询电话（展示用）' },
+  { key: 'email', label: '电子邮箱' },
+  { key: 'hours', label: '工作时间' },
+  { key: 'lawyerCount', label: '执业律师人数', type: 'number' },
+  { key: 'partnerCount', label: '合伙人人数', type: 'number' },
+];
+---
+
+<AdminLayout title="站点设置" current="settings">
+  <Fragment slot="actions">
+    <a class="btn btn--ghost btn--sm" href={publicUrl('/', Astro.url.host)} target="_blank" rel="noopener">查看站点</a>
+  </Fragment>
+
+  {saved && !error && <p class="notice">设置已保存。前台的文字与页脚改动需要重新构建后生效。</p>}
+  {error && <p class="notice">保存失败：{error}</p>}
+
+  <form method="post" enctype="multipart/form-data" autocomplete="off">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>站点 Logo</h2>
+          <p>未上传时前台使用文字字标，上传后自动替换为图片。</p>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="logo-preview">
+          {settings.logo ? (
+            <img src={settings.logo} alt="当前站点 Logo" />
+          ) : (
+            <span class="logo-empty">未设置</span>
+          )}
+
+          <div class="field" style="flex:1">
+            <label for="logoFile">上传新 Logo</label>
+            <input id="logoFile" name="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="input" />
+            <small>支持 PNG、JPG、WebP、SVG，不超过 1MB。建议使用正方形或接近正方形的图形标。</small>
+          </div>
+        </div>
+
+        {settings.logo && (
+          <label style="display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--ink-soft);">
+            <input type="checkbox" name="removeLogo" />
+            移除当前 Logo，改回文字字标
+          </label>
+        )}
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-head">
+        <div>
+          <h2>律所信息</h2>
+          <p>这些字段会同步到前台页头、页脚、联系页与结构化数据。</p>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid">
+          {fields.map((field) => (
+            <div class={`field ${field.key === 'address' ? 'field--wide' : ''}`}>
+              <label for={formNameOf(field.key)}>{field.label}</label>
+              <input
+                id={formNameOf(field.key)}
+                name={formNameOf(field.key)}
+                type={field.type ?? 'text'}
+                class="input"
+                autocomplete="off"
+                value={settings[field.key]}
+              />
+              {field.hint && <small>{field.hint}</small>}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="form-actions">
+          <button type="submit" class="btn btn--solid btn--sm">保存设置</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</AdminLayout>

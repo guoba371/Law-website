@@ -1,0 +1,518 @@
+---
+import type { ArticleRecord } from '../../server/store';
+
+interface Props {
+  article?: ArticleRecord;
+  categories: string[];
+  error?: string;
+  submitLabel: string;
+}
+
+const { article, categories, error, submitLabel } = Astro.props;
+const today = new Date().toISOString().slice(0, 10);
+---
+
+{error && <p class="notice">保存失败：{error}</p>}
+
+<form
+  method="post"
+  class="panel"
+  autocomplete="off"
+  data-article-editor
+  data-article-id={article?.id ?? 0}
+>
+  <div class="panel-head">
+    <div>
+      <h2>文章内容</h2>
+      <p>左边写作，右边实时预览。正文以 Markdown 保存，前台用同一套规则渲染。</p>
+    </div>
+  </div>
+
+  <div class="panel-body">
+    <div class="form-grid">
+      <div class="field field--wide">
+        <label for="title">标题</label>
+        <input id="title" name="title" class="input" required autocomplete="off" value={article?.title ?? ''} />
+      </div>
+
+      <div class="field">
+        <label for="slug">路径标识</label>
+        <input id="slug" name="slug" class="input" required autocomplete="off" value={article?.slug ?? ''} placeholder="labor-arbitration-limitation" />
+        <small>文章地址为 /insights/路径标识/，只能用英文小写字母、数字和连字符。</small>
+      </div>
+
+      <div class="field">
+        <label for="category">分类</label>
+        <select id="category" name="category" class="select">
+          {categories.map((item) => (
+            <option value={item} selected={article?.category === item}>{item}</option>
+          ))}
+        </select>
+      </div>
+
+      <div class="field field--wide">
+        <label for="summary">摘要</label>
+        <textarea id="summary" name="summary" class="textarea" rows="3">{article?.summary ?? ''}</textarea>
+        <small>会用在列表页和搜索引擎的 description 上，控制在 78 个汉字以内。</small>
+      </div>
+
+      <div class="field">
+        <label for="author">作者</label>
+        <input id="author" name="author" class="input" autocomplete="off" value={article?.author ?? ''} />
+      </div>
+
+      <div class="field">
+        <label for="keyword">目标关键词</label>
+        <input id="keyword" name="keyword" class="input" autocomplete="off" value={article?.keyword ?? ''} />
+      </div>
+
+      <div class="field">
+        <label for="publishedAt">发布日期</label>
+        <input id="publishedAt" name="publishedAt" type="date" class="input" value={article?.publishedAt ?? today} />
+      </div>
+
+      <div class="field">
+        <label for="updatedAt">更新日期</label>
+        <input id="updatedAt" name="updatedAt" type="date" class="input" value={article?.updatedAt ?? today} />
+      </div>
+
+      <div class="field">
+        <label for="readingTime">预计阅读时长</label>
+        <input id="readingTime" name="readingTime" type="number" min="1" max="60" class="input" value={article?.readingTime ?? 8} />
+        <small>单位：分钟。</small>
+      </div>
+
+      <div class="field">
+        <label for="status">状态</label>
+        <select id="status" name="status" class="select">
+          <option value="draft" selected={article?.status !== 'published'}>草稿（不在前台显示）</option>
+          <option value="published" selected={article?.status === 'published'}>已发布</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-body">
+    <div class="field">
+      <div class="field-head">
+        <label for="body">正文</label>
+        <span class="upload-status" data-upload-status></span>
+      </div>
+
+      <div class="editor-toolbar" role="toolbar" aria-label="正文格式">
+        <button type="button" class="tool" data-format="h2">标题</button>
+        <button type="button" class="tool" data-format="h3">小标题</button>
+        <span class="tool-sep" aria-hidden="true"></span>
+        <button type="button" class="tool tool--strong" data-format="bold">加粗</button>
+        <span class="tool-sep" aria-hidden="true"></span>
+        <button type="button" class="tool" data-format="ul">项目符号</button>
+        <button type="button" class="tool" data-format="ol">编号列表</button>
+        <button type="button" class="tool" data-format="quote">法条引文</button>
+        <button type="button" class="tool" data-format="link">链接</button>
+        <span class="tool-sep" aria-hidden="true"></span>
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          multiple
+          hidden
+          data-image-input
+        />
+        <button type="button" class="tool" data-insert-image>插入图片</button>
+      </div>
+
+      <div class="editor-split">
+        <div class="editor-pane">
+          <textarea id="body" name="body" class="textarea textarea--body" spellcheck="false">{article?.body ?? ''}</textarea>
+        </div>
+        <div class="editor-pane editor-pane--preview">
+          <div class="prose editor-preview" data-editor-preview aria-live="polite"></div>
+        </div>
+      </div>
+
+      <small>
+        工具栏按钮对光标所在段落生效，再点一次取消。选中文字后点「加粗」或「链接」只作用于选中的部分。
+        配图限 PNG、JPG、WebP，单张不超过 5MB。
+      </small>
+    </div>
+
+    <div class="media-block" data-media-block hidden>
+      <div class="media-head">
+        <h3>本文图片</h3>
+        <p>
+          「移除引用」只把图片从正文删掉，文件留着备用。「删除文件」会同时从正文移除并删除服务器上的文件。
+          被其他文章引用的图片不允许删除。
+        </p>
+      </div>
+      <div class="media-strip" data-media-strip></div>
+    </div>
+  </div>
+
+  <div class="panel-body">
+    <div class="form-actions">
+      <button type="submit" class="btn btn--solid btn--sm">{submitLabel}</button>
+      <a class="btn btn--ghost btn--sm" href="/admin/articles/">取消</a>
+    </div>
+  </div>
+</form>
+
+<script>
+  import { marked } from 'marked';
+
+  const editor = document.querySelector<HTMLElement>('[data-article-editor]');
+
+  if (editor) {
+    const textarea = editor.querySelector<HTMLTextAreaElement>('#body')!;
+    const articleId = editor.dataset.articleId ?? '0';
+    const fileInput = editor.querySelector<HTMLInputElement>('[data-image-input]')!;
+    const insertButton = editor.querySelector<HTMLButtonElement>('[data-insert-image]')!;
+    const status = editor.querySelector<HTMLElement>('[data-upload-status]')!;
+    const block = editor.querySelector<HTMLElement>('[data-media-block]')!;
+    const strip = editor.querySelector<HTMLElement>('[data-media-strip]')!;
+    const preview = editor.querySelector<HTMLElement>('[data-editor-preview]')!;
+
+    const IMAGE_PATTERN = /!\[([^\]]*)\]\((\/uploads\/[^)\s]+)\)/g;
+    const ALT_PLACEHOLDER = '图片说明';
+
+    /* ---------- 实时预览 ---------- */
+
+    function renderPreview() {
+      // 与前台用的是同一个 marked，渲染结果一致
+      preview.innerHTML = String(marked.parse(textarea.value, { async: false }));
+    }
+
+    let renderTimer: number | undefined;
+    function schedulePreview() {
+      window.clearTimeout(renderTimer);
+      renderTimer = window.setTimeout(renderPreview, 120);
+    }
+
+    function afterEdit() {
+      renderPreview();
+      renderStrip();
+    }
+
+    /* ---------- 两栏滚动同步 ---------- */
+
+    let syncing = false;
+    const scrollPairs: [HTMLElement, HTMLElement][] = [
+      [textarea, preview],
+      [preview, textarea],
+    ];
+
+    for (const [source, target] of scrollPairs) {
+      source.addEventListener('scroll', () => {
+        // 窄屏下两栏上下堆叠，同步滚动反而别扭
+        if (syncing || !window.matchMedia('(min-width: 901px)').matches) return;
+        syncing = true;
+
+        const sourceRange = source.scrollHeight - source.clientHeight;
+        const targetRange = target.scrollHeight - target.clientHeight;
+        target.scrollTop = sourceRange > 0 ? (source.scrollTop / sourceRange) * targetRange : 0;
+
+        window.requestAnimationFrame(() => {
+          syncing = false;
+        });
+      });
+    }
+
+    /* ---------- 格式工具栏 ---------- */
+
+    function setStatus(message: string, tone: 'busy' | 'error' | 'done' | '') {
+      status.textContent = message;
+      if (tone) status.dataset.tone = tone;
+      else delete status.dataset.tone;
+    }
+
+    function transformLines(transform: (lines: string[]) => string[]) {
+      const value = textarea.value;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+      let lineEnd = value.indexOf('\n', end);
+      if (lineEnd === -1) lineEnd = value.length;
+
+      const blockText = value.slice(lineStart, lineEnd);
+      const next = transform(blockText.split('\n')).join('\n');
+      textarea.value = value.slice(0, lineStart) + next + value.slice(lineEnd);
+
+      const caret = lineStart + next.length;
+      textarea.focus();
+      textarea.setSelectionRange(caret, caret);
+      afterEdit();
+    }
+
+    function wrapSelection(before: string, after: string, placeholder: string) {
+      const value = textarea.value;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = value.slice(start, end) || placeholder;
+
+      textarea.value = value.slice(0, start) + before + selected + after + value.slice(end);
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+      afterEdit();
+    }
+
+    /*
+     * 标题、列表、引文都属于块级标记，一行只能有一个。
+     * 应用新标记前先清掉旧的，否则会得到 `1. > 文字` 这类混合结果。
+     */
+    const BLOCK_PREFIX = /^\s*(?:#{1,6}\s+|[-*+]\s+|\d+\.\s+|>\s?)/;
+
+    function applyHeading(level: number) {
+      const marker = `${'#'.repeat(level)} `;
+      transformLines((lines) => {
+        const allSet = lines.every((line) => line.startsWith(marker));
+        return lines.map((line) => {
+          const stripped = line.replace(BLOCK_PREFIX, '');
+          return allSet ? stripped : marker + stripped;
+        });
+      });
+    }
+
+    function applyList(ordered: boolean) {
+      transformLines((lines) => {
+        const filled = lines.filter((line) => line.trim());
+        if (filled.length === 0) return lines;
+
+        const marker = ordered ? /^\s*\d+\.\s+/ : /^\s*[-*+]\s+/;
+        const alreadyApplied = filled.every((line) => marker.test(line));
+
+        let index = 0;
+        return lines.map((line) => {
+          if (!line.trim()) return line;
+          const text = line.replace(BLOCK_PREFIX, '');
+          if (alreadyApplied) return text;
+          index += 1;
+          return ordered ? `${index}. ${text}` : `- ${text}`;
+        });
+      });
+    }
+
+    function applyQuote() {
+      transformLines((lines) => {
+        const filled = lines.filter((line) => line.trim());
+        if (filled.length === 0) return lines;
+
+        const alreadyApplied = filled.every((line) => /^\s*>\s?/.test(line));
+        return lines.map((line) => {
+          if (!line.trim()) return line;
+          const text = line.replace(BLOCK_PREFIX, '');
+          return alreadyApplied ? text : `> ${text}`;
+        });
+      });
+    }
+
+    function insertLink() {
+      const value = textarea.value;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = value.slice(start, end);
+      const label = selected || '链接文字';
+      const url = 'https://';
+
+      textarea.value = value.slice(0, start) + `[${label}](${url})` + value.slice(end);
+      textarea.focus();
+
+      if (selected) {
+        const urlStart = start + label.length + 3;
+        textarea.setSelectionRange(urlStart, urlStart + url.length);
+      } else {
+        textarea.setSelectionRange(start + 1, start + 1 + label.length);
+      }
+
+      afterEdit();
+    }
+
+    const formatActions: Record<string, () => void> = {
+      h2: () => applyHeading(2),
+      h3: () => applyHeading(3),
+      bold: () => wrapSelection('**', '**', '加粗文字'),
+      ul: () => applyList(false),
+      ol: () => applyList(true),
+      quote: applyQuote,
+      link: insertLink,
+    };
+
+    for (const button of editor.querySelectorAll<HTMLButtonElement>('[data-format]')) {
+      button.addEventListener('click', () => {
+        formatActions[button.dataset.format ?? '']?.();
+      });
+    }
+
+    textarea.addEventListener('keydown', (event) => {
+      if (!event.metaKey && !event.ctrlKey) return;
+      const key = event.key.toLowerCase();
+      if (key === 'b') {
+        event.preventDefault();
+        formatActions.bold();
+      }
+      if (key === 'k') {
+        event.preventDefault();
+        formatActions.link();
+      }
+    });
+
+    /* ---------- 正文图片 ---------- */
+
+    function insertImage(url: string) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = textarea.value;
+      const before = value.slice(0, start);
+      const after = value.slice(end);
+      const lead = before.length > 0 && !before.endsWith('\n') ? '\n\n' : '';
+      const snippet = `${lead}![${ALT_PLACEHOLDER}](${url})\n`;
+
+      textarea.value = before + snippet + after;
+
+      // 光标选中占位的图片说明，直接打字就能替换
+      const labelStart = before.length + lead.length + 2;
+      textarea.focus();
+      textarea.setSelectionRange(labelStart, labelStart + ALT_PLACEHOLDER.length);
+      afterEdit();
+    }
+
+    function collectImages() {
+      const seen = new Set<string>();
+      const images: { alt: string; url: string }[] = [];
+      IMAGE_PATTERN.lastIndex = 0;
+
+      let match = IMAGE_PATTERN.exec(textarea.value);
+      while (match) {
+        if (!seen.has(match[2])) {
+          seen.add(match[2]);
+          images.push({ alt: match[1], url: match[2] });
+        }
+        match = IMAGE_PATTERN.exec(textarea.value);
+      }
+
+      return images;
+    }
+
+    function removeReference(url: string) {
+      const escaped = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const pattern = new RegExp(`!\\[[^\\]]*\\]\\(${escaped}\\)\\n?`, 'g');
+      textarea.value = textarea.value.replace(pattern, '');
+      afterEdit();
+    }
+
+    async function deleteFile(url: string, button: HTMLButtonElement) {
+      if (!confirm('会从正文移除这张图片，并删除服务器上的文件。删除后无法恢复，确认？')) return;
+
+      button.disabled = true;
+
+      // 先摘掉正文里的引用，避免服务端因为编辑器里的未保存引用而拒绝删除
+      removeReference(url);
+
+      const payload = new FormData();
+      payload.append('url', url);
+      payload.append('body', textarea.value);
+      payload.append('articleId', articleId);
+
+      try {
+        const response = await fetch('/admin/media/delete/', { method: 'POST', body: payload });
+        const result = await response.json();
+        if (result.ok) {
+          setStatus('图片文件已删除。', 'done');
+        } else {
+          setStatus(result.error ?? '删除失败。', 'error');
+        }
+      } catch {
+        setStatus('删除失败，请重试。', 'error');
+      }
+
+      button.disabled = false;
+      renderStrip();
+    }
+
+    function renderStrip() {
+      const images = collectImages();
+      strip.textContent = '';
+      block.hidden = images.length === 0;
+
+      for (const image of images) {
+        const item = document.createElement('div');
+        item.className = 'media-item';
+
+        const thumbnail = document.createElement('img');
+        thumbnail.src = image.url;
+        thumbnail.alt = image.alt || '';
+        thumbnail.loading = 'lazy';
+
+        const meta = document.createElement('div');
+        meta.className = 'media-meta';
+
+        const name = document.createElement('span');
+        name.className = 'media-name';
+        name.textContent = image.url.replace('/uploads/', '');
+
+        const actions = document.createElement('div');
+        actions.className = 'media-actions';
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'row-link';
+        removeButton.textContent = '移除引用';
+        removeButton.addEventListener('click', () => removeReference(image.url));
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'row-link';
+        deleteButton.textContent = '删除文件';
+        deleteButton.addEventListener('click', () => deleteFile(image.url, deleteButton));
+
+        actions.append(removeButton, deleteButton);
+        meta.append(name, actions);
+        item.append(thumbnail, meta);
+        strip.append(item);
+      }
+    }
+
+    async function uploadFiles(files: FileList | null) {
+      const list = Array.from(files ?? []).filter((file) => file.size > 0);
+      if (list.length === 0) return;
+
+      insertButton.disabled = true;
+      let succeeded = 0;
+      let failure = '';
+
+      for (let index = 0; index < list.length; index += 1) {
+        setStatus(`正在上传 ${index + 1}/${list.length}`, 'busy');
+        const payload = new FormData();
+        payload.append('file', list[index]);
+
+        try {
+          const response = await fetch('/admin/media/', { method: 'POST', body: payload });
+          const result = await response.json();
+          if (result.ok) {
+            insertImage(result.url);
+            succeeded += 1;
+          } else {
+            failure = result.error ?? '上传失败。';
+          }
+        } catch {
+          failure = '上传失败，请重试。';
+        }
+      }
+
+      insertButton.disabled = false;
+      fileInput.value = '';
+
+      if (failure) setStatus(failure, 'error');
+      else setStatus(`已插入 ${succeeded} 张图片，记得填写图片说明。`, 'done');
+
+      afterEdit();
+    }
+
+    insertButton.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+    textarea.addEventListener('input', () => {
+      schedulePreview();
+      renderStrip();
+    });
+
+    renderPreview();
+    renderStrip();
+  }
+</script>

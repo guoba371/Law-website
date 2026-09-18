@@ -3,9 +3,11 @@ import BaseLayout from '../../site/layouts/SiteLayout.astro';
 import ContactBand from '../../site/components/ContactBand.astro';
 import { lawyers } from '../../content/firm';
 import { getSettings, listArticles } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
-const articles = listArticles({ publishedOnly: true });
+const siteId = currentSiteId();
+const firm = getSettings(siteId);
+const articles = listArticles({ publishedOnly: true, siteId });
 
 export function getStaticPaths() {
   return lawyers.map((lawyer) => ({

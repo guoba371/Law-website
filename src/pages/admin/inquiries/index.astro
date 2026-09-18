@@ -1,0 +1,122 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../admin/layouts/AdminLayout.astro';
+import { INQUIRY_STATUSES, type InquiryStatus } from '../../../server/db';
+import { requestedSiteId } from '../../../server/admin-context';
+import { listInquiries, updateInquiryStatus } from '../../../server/store';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const id = Number(form.get('id'));
+  const status = String(form.get('status') ?? '') as InquiryStatus;
+
+  if (Number.isInteger(id) && id > 0 && INQUIRY_STATUSES.includes(status)) {
+    updateInquiryStatus(id, status);
+  }
+
+  const siteId = requestedSiteId(Astro.url.searchParams);
+  return Astro.redirect(`/admin/inquiries/?site=${siteId}&updated=1`);
+}
+
+const siteId = requestedSiteId(Astro.url.searchParams);
+const statusFilter = Astro.url.searchParams.get('status') as InquiryStatus | null;
+const inquiries = listInquiries({ siteId, status: statusFilter ?? undefined });
+
+const statusLabels: Record<InquiryStatus, string> = {
+  new: '新咨询',
+  contacted: '已联系',
+  engaged: '已委托',
+  invalid: '无效',
+};
+
+const filters: { key: InquiryStatus | 'all'; label: string }[] = [
+  { key: 'all', label: `全部 ${listInquiries({ siteId }).length}` },
+  ...INQUIRY_STATUSES.map((status) => ({
+    key: status,
+    label: `${statusLabels[status]} ${listInquiries({ siteId, status }).length}`,
+  })),
+];
+---
+
+<AdminLayout title="咨询线索" current="inquiries" description="前台提交的咨询会通知到钉钉和邮箱，并在这里统一跟进。">
+  {Astro.url.searchParams.get('updated') === '1' && <p class="notice">状态已更新。</p>}
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="admin-topbar-actions">
+        {filters.map((filter) => (
+          <a
+            class={`btn btn--sm ${statusFilter === filter.key || (filter.key === 'all' && !statusFilter) ? 'btn--solid' : 'btn--ghost'}`}
+            href={`/admin/inquiries/?site=${siteId}${filter.key === 'all' ? '' : `&status=${filter.key}`}`}
+          >
+            {filter.label}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {inquiries.length === 0 ? (
+      <div class="empty">还没有咨询线索。</div>
+    ) : (
+      <table class="table">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>姓名</th>
+            <th>联系方式</th>
+            <th>类型</th>
+            <th>内容</th>
+            <th>状态</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {inquiries.map((inquiry) => (
+            <tr>
+              <td class="cell-num">
+                {inquiry.createdAt.slice(0, 16).replace('T', ' ')}
+              </td>
+              <td>
+                <span class="cell-title">{inquiry.name}</span>
+              </td>
+              <td>
+                <span class="cell-num">{inquiry.phone}</span>
+                {inquiry.email && <span class="cell-sub">{inquiry.email}</span>}
+              </td>
+              <td>{inquiry.caseType || '未选择'}</td>
+              <td>
+                {inquiry.message ? (
+                  <details class="inquiry-detail">
+                    <summary>查看内容</summary>
+                    <p>{inquiry.message}</p>
+                  </details>
+                ) : (
+                  <span class="cell-sub">无</span>
+                )}
+              </td>
+              <td>
+                <span class={`badge ${inquiry.status === 'new' ? 'badge--published' : 'badge--draft'}`}>
+                  {statusLabels[inquiry.status]}
+                </span>
+              </td>
+              <td class="cell-actions">
+                <form method="post" class="status-form">
+                  <input type="hidden" name="id" value={inquiry.id} />
+                  <select name="status" class="select">
+                    {INQUIRY_STATUSES.map((status) => (
+                      <option value={status} selected={status === inquiry.status}>
+                        {statusLabels[status]}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" class="btn btn--ghost btn--sm">更新</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</AdminLayout>

@@ -3,9 +3,11 @@ import BaseLayout from '../site/layouts/SiteLayout.astro';
 import ContactBand from '../site/components/ContactBand.astro';
 import { practiceAreas, lawyers } from '../content/firm';
 import { getSettings, listArticles } from '../server/store';
+import { currentSiteId } from '../server/site-context';
 
-const firm = getSettings();
-const articles = listArticles({ publishedOnly: true });
+const siteId = currentSiteId();
+const firm = getSettings(siteId);
+const articles = listArticles({ publishedOnly: true, siteId });
 
 const title = `${firm.city}律师事务所`;
 const description = `${firm.name}成立于 ${firm.founded} 年，执业律师 ${firm.lawyerCount} 名，办理劳动与人事争议、婚姻家事、合同与商事纠纷、刑事辩护业务。`;

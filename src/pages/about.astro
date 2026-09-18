@@ -3,8 +3,9 @@ import BaseLayout from '../site/layouts/SiteLayout.astro';
 import ContactBand from '../site/components/ContactBand.astro';
 import { practiceAreas, cities } from '../content/firm';
 import { getSettings } from '../server/store';
+import { currentSiteId } from '../server/site-context';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 const officeCities = cities.map((city) => city.name).join('、');
 
 const title = '关于我们';

@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../site/layouts/SiteLayout.astro';
+import { getSettings } from '../server/store';
+import { currentSiteId } from '../server/site-context';
+
+const firm = getSettings(currentSiteId());
+const title = '隐私政策';
+const description = `${firm.name}收集和使用咨询信息的说明。`;
+---
+
+<BaseLayout {title} {description}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav class="breadcrumb"><a href="/">首页</a> / 隐私政策</nav>
+      <h1>隐私政策</h1>
+      <p class="lead">
+        本政策说明 {firm.name} 在您提交咨询时如何收集、使用和保护您的个人信息。
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+      <article class="prose">
+        <h2>一、我们收集哪些信息</h2>
+        <p>
+          当您通过网站提交咨询时，我们会收集您主动提供的姓名、联系电话、电子邮箱（选填）、
+          咨询类型和咨询内容。以上信息仅用于判断争议性质、联系您并评估是否可以提供法律服务。
+        </p>
+
+        <h2>二、我们如何使用这些信息</h2>
+        <ul>
+          <li>与您联系，了解案件情况</li>
+          <li>评估是否建立委托关系</li>
+          <li>在法律允许的范围内办理您咨询或委托的事项</li>
+        </ul>
+
+        <h2>三、我们是否向第三方提供信息</h2>
+        <p>
+          除法律规定、司法或行政机关依法要求，或者获得您的明确同意外，
+          我们不会向任何第三方提供您的个人信息。
+        </p>
+
+        <h2>四、保存期限</h2>
+        <p>
+          咨询记录仅在实现上述目的所必需的期限内保存。未建立委托关系的咨询信息，
+          我们会在合理期限内删除或匿名化处理。
+        </p>
+
+        <h2>五、您的权利</h2>
+        <p>
+          您可以要求我们查阅、更正或删除您提供的个人信息。如对信息处理有疑问，
+          请通过页面上的联系方式与我们联系。
+        </p>
+      </article>
+
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <h3>联系信息处理</h3>
+          <p>{firm.name}<br />{firm.address}<br />电话：{firm.phoneDisplay}</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>

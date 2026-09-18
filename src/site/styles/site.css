@@ -906,6 +906,104 @@
   color: var(--ink-soft);
 }
 
+/* ---------- 咨询表单 ---------- */
+
+.inquiry-form {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 28px;
+}
+
+.inquiry-form .field {
+  display: grid;
+  gap: 6px;
+}
+
+.inquiry-form .field--full,
+.inquiry-form .consent,
+.inquiry-form .form-actions {
+  grid-column: 1 / -1;
+}
+
+.inquiry-form label {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.inquiry-form input,
+.inquiry-form select,
+.inquiry-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.inquiry-form textarea {
+  resize: vertical;
+}
+
+.inquiry-form input:focus,
+.inquiry-form select:focus,
+.inquiry-form textarea:focus {
+  outline: none;
+  border-color: var(--brass);
+  box-shadow: 0 0 0 3px var(--brass-soft);
+}
+
+.inquiry-form .consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.inquiry-form .consent input {
+  width: auto;
+  margin-top: 3px;
+}
+
+.inquiry-form .consent a {
+  color: var(--brass-ink);
+  text-decoration: underline;
+}
+
+.inquiry-form .form-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.form-status {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.form-status[data-tone="ok"],
+.form-status[data-tone="error"] {
+  color: var(--brass-ink);
+}
+
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 /* ---------- 响应式 ---------- */
 
 @media (max-width: 960px) {
@@ -978,6 +1076,11 @@
     padding: 64px 0;
   }
 
+  .inquiry-form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+
   .nav,
   .header-phone {
     display: none;
@@ -1047,4 +1150,3 @@
     padding-left: 0;
   }
 }
-

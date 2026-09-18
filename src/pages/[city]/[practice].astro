@@ -3,8 +3,9 @@ import BaseLayout from '../../site/layouts/SiteLayout.astro';
 import ContactBand from '../../site/components/ContactBand.astro';
 import { localPages, practiceAreas, cities, lawyers } from '../../content/firm';
 import { getSettings } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 
 export function getStaticPaths() {
   return localPages.map((page) => ({

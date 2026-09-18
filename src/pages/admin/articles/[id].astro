@@ -5,7 +5,8 @@ import AdminLayout from '../../../admin/layouts/AdminLayout.astro';
 import ArticleForm from '../../../admin/components/ArticleForm.astro';
 import { parseArticleForm } from '../../../server/article-form';
 import { publicUrl } from '../../../server/site-url';
-import { deleteArticle, getArticle, listCategories, updateArticle } from '../../../server/store';
+import { requestedSiteId } from '../../../server/admin-context';
+import { deleteArticle, getArticle, listCategories, listSites, updateArticle } from '../../../server/store';
 import { practiceAreas } from '../../../content/firm';
 
 const id = Number(Astro.params.id);
@@ -18,7 +19,9 @@ if (!article) {
   return new Response('找不到这篇文章', { status: 404 });
 }
 
-const categories = [...new Set([...practiceAreas.map((area) => area.name), ...listCategories()])];
+const siteId = requestedSiteId(Astro.url.searchParams);
+const sites = listSites();
+const categories = [...new Set([...practiceAreas.map((area) => area.name), ...listCategories(article.siteId)])];
 let error = '';
 
 if (Astro.request.method === 'POST') {
@@ -26,13 +29,13 @@ if (Astro.request.method === 'POST') {
 
   if (form.get('_action') === 'delete') {
     deleteArticle(id);
-    return Astro.redirect('/admin/articles/?deleted=1');
+    return Astro.redirect(`/admin/articles/?deleted=1&site=${siteId}`);
   }
 
   const parsed = parseArticleForm(form, id);
   if (parsed.ok) {
     updateArticle(id, parsed.value);
-    return Astro.redirect('/admin/articles/?updated=1');
+    return Astro.redirect(`/admin/articles/?updated=1&site=${parsed.value.siteId}`);
   }
 
   error = parsed.error;
@@ -50,7 +53,7 @@ if (Astro.request.method === 'POST') {
     >前台预览</a>
   </Fragment>
 
-  <ArticleForm {article} {categories} {error} submitLabel="保存修改" />
+  <ArticleForm {article} {sites} {categories} {error} submitLabel="保存修改" />
 
   <div class="panel">
     <div class="panel-body">

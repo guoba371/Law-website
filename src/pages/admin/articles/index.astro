@@ -2,17 +2,20 @@
 export const prerender = false;
 
 import AdminLayout from '../../../admin/layouts/AdminLayout.astro';
+import { requestedSiteId } from '../../../server/admin-context';
 import { deleteArticle, listArticles } from '../../../server/store';
 
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   const id = Number(form.get('id'));
   if (Number.isInteger(id) && id > 0) deleteArticle(id);
-  return Astro.redirect('/admin/articles/?deleted=1');
+  const siteId = requestedSiteId(Astro.url.searchParams);
+  return Astro.redirect(`/admin/articles/?deleted=1&site=${siteId}`);
 }
 
+const siteId = requestedSiteId(Astro.url.searchParams);
 const statusFilter = Astro.url.searchParams.get('status') ?? 'all';
-const all = listArticles();
+const all = listArticles({ siteId });
 const articles =
   statusFilter === 'published'
     ? all.filter((article) => article.status === 'published')
@@ -29,7 +32,7 @@ const filters = [
 
 <AdminLayout title="文章" current="articles" description="草稿不会出现在前台，已发布的文章需要在重新构建后生效。">
   <Fragment slot="actions">
-    <a class="btn btn--solid btn--sm" href="/admin/articles/new/">新建文章</a>
+    <a class="btn btn--solid btn--sm" href={`/admin/articles/new/?site=${siteId}`}>新建文章</a>
   </Fragment>
 
   {Astro.url.searchParams.get('deleted') === '1' && <p class="notice">文章已删除。</p>}
@@ -42,7 +45,7 @@ const filters = [
         {filters.map((filter) => (
           <a
             class={`btn btn--sm ${statusFilter === filter.key ? 'btn--solid' : 'btn--ghost'}`}
-            href={filter.key === 'all' ? '/admin/articles/' : `/admin/articles/?status=${filter.key}`}
+            href={`/admin/articles/?site=${siteId}${filter.key === 'all' ? '' : `&status=${filter.key}`}`}
           >
             {filter.label}
           </a>
@@ -51,7 +54,7 @@ const filters = [
     </div>
 
     {articles.length === 0 ? (
-      <div class="empty">这个筛选下没有文章。<a href="/admin/articles/new/">新建一篇</a></div>
+      <div class="empty">这个筛选下没有文章。<a href={`/admin/articles/new/?site=${siteId}`}>新建一篇</a></div>
     ) : (
       <table class="table">
         <thead>
@@ -68,7 +71,7 @@ const filters = [
           {articles.map((article) => (
             <tr>
               <td>
-                <a class="row-link cell-title" href={`/admin/articles/${article.id}/`}>{article.title}</a>
+                <a class="row-link cell-title" href={`/admin/articles/${article.id}/?site=${siteId}`}>{article.title}</a>
                 <span class="cell-sub">/insights/{article.slug}/</span>
               </td>
               <td>{article.category}</td>
@@ -80,7 +83,7 @@ const filters = [
               </td>
               <td class="cell-num">{article.publishedAt}</td>
               <td class="cell-actions">
-                <a class="row-link" href={`/admin/articles/${article.id}/`}>编辑</a>
+                <a class="row-link" href={`/admin/articles/${article.id}/?site=${siteId}`}>编辑</a>
                 <form method="post" style="display:inline" onsubmit="return confirm('删除后无法恢复，确认删除这篇？')">
                   <input type="hidden" name="id" value={article.id} />
                   <button type="submit" class="row-link" style="margin-left:12px;">删除</button>

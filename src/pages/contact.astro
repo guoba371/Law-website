@@ -1,11 +1,16 @@
 ---
 import BaseLayout from '../site/layouts/SiteLayout.astro';
 import { getSettings } from '../server/store';
+import { currentSiteId } from '../server/site-context';
+import { practiceAreas } from '../content/firm';
 
-const firm = getSettings();
+const siteId = currentSiteId();
+const firm = getSettings(siteId);
 
 const title = '联系方式';
 const description = `联系${firm.name}：电话 ${firm.phoneDisplay}，地址 ${firm.address}。`;
+
+const caseTypes = [...practiceAreas.map((area) => area.name), '其他'];
 ---
 
 <BaseLayout {title} {description}>
@@ -42,6 +47,57 @@ const description = `联系${firm.name}：电话 ${firm.phoneDisplay}，地址 $
       </div>
 
       <div class="section-head">
+        <h2>在线提交咨询</h2>
+        <p>提交后我们会尽快与您联系。带 * 的为必填项。</p>
+      </div>
+
+      <form class="inquiry-form" data-inquiry-form novalidate>
+        <input type="hidden" name="site" value={siteId} />
+
+        <div class="hp-field" aria-hidden="true">
+          <input type="text" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="inq-name">姓名 *</label>
+          <input id="inq-name" name="name" type="text" required autocomplete="name" />
+        </div>
+
+        <div class="field">
+          <label for="inq-phone">电话 *</label>
+          <input id="inq-phone" name="phone" type="tel" required autocomplete="tel" />
+        </div>
+
+        <div class="field">
+          <label for="inq-email">电子邮箱</label>
+          <input id="inq-email" name="email" type="email" autocomplete="email" />
+        </div>
+
+        <div class="field">
+          <label for="inq-caseType">咨询类型</label>
+          <select id="inq-caseType" name="caseType">
+            <option value="">请选择</option>
+            {caseTypes.map((item) => <option value={item}>{item}</option>)}
+          </select>
+        </div>
+
+        <div class="field field--full">
+          <label for="inq-message">咨询内容 *</label>
+          <textarea id="inq-message" name="message" rows="6" required></textarea>
+        </div>
+
+        <label class="consent">
+          <input type="checkbox" name="consent" required />
+          我已阅读并同意<a href="/privacy/">《隐私政策》</a>，并确认所填信息用于本次法律咨询。
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--solid">提交咨询</button>
+          <span class="form-status" data-form-status></span>
+        </div>
+      </form>
+
+      <div class="section-head" style="margin-top:64px;">
         <h2>联系前建议准备的材料</h2>
         <p>这些信息决定管辖机构的选择，也决定时效是否需要优先处理。</p>
       </div>
@@ -61,3 +117,46 @@ const description = `联系${firm.name}：电话 ${firm.phoneDisplay}，地址 $
     </section>
   </div>
 </BaseLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-inquiry-form]');
+  const status = document.querySelector<HTMLElement>('[data-form-status]');
+
+  if (form && status) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submit) submit.disabled = true;
+      status.textContent = '正在提交…';
+      status.dataset.tone = '';
+
+      try {
+        const response = await fetch('/api/inquiries/', {
+          method: 'POST',
+          body: new FormData(form),
+        });
+        const result = await response.json();
+
+        if (result.ok) {
+          status.textContent = '已收到您的咨询，我们会尽快与您联系。';
+          status.dataset.tone = 'ok';
+          form.reset();
+        } else {
+          status.textContent = result.error ?? '提交失败，请稍后再试。';
+          status.dataset.tone = 'error';
+        }
+      } catch {
+        status.textContent = '提交失败，请检查网络后重试。';
+        status.dataset.tone = 'error';
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    });
+  }
+</script>

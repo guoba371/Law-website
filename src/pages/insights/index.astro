@@ -2,9 +2,11 @@
 import BaseLayout from '../../site/layouts/SiteLayout.astro';
 import ContactBand from '../../site/components/ContactBand.astro';
 import { getSettings, listArticles } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
-const articles = listArticles({ publishedOnly: true });
+const siteId = currentSiteId();
+const firm = getSettings(siteId);
+const articles = listArticles({ publishedOnly: true, siteId });
 
 const title = '法律洞察';
 const description = `${firm.name}发布的法律实务文章，按可执行的标准说明规则、步骤与常见误区。`;

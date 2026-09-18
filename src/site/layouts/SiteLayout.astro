@@ -5,8 +5,9 @@ import '../styles/site.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { getSettings } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 
 interface Props {
   title: string;

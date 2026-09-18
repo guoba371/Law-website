@@ -1,8 +1,9 @@
 ---
 import { practiceAreas, cities } from '../../content/firm';
 import { getSettings } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 const officeCities = cities.map((city) => city.name).join('、');
 ---
 
@@ -31,6 +32,7 @@ const officeCities = cities.map((city) => city.name).join('、');
           <li><a href="/about/">律所简介</a></li>
           <li><a href="/insights/">法律洞察</a></li>
           <li><a href="/contact/">联系方式</a></li>
+          <li><a href="/privacy/">隐私政策</a></li>
         </ul>
       </div>
 

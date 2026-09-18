@@ -1,9 +1,10 @@
 ---
 import { nav } from '../../content/firm';
 import { getSettings } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 import ThemeToggle from './ThemeToggle.astro';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 ---
 
 <div class="topbar">

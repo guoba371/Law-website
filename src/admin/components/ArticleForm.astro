@@ -1,14 +1,15 @@
 ---
-import type { ArticleRecord } from '../../server/store';
+import type { ArticleRecord, SiteRecord } from '../../server/store';
 
 interface Props {
   article?: ArticleRecord;
+  sites: SiteRecord[];
   categories: string[];
   error?: string;
   submitLabel: string;
 }
 
-const { article, categories, error, submitLabel } = Astro.props;
+const { article, sites, categories, error, submitLabel } = Astro.props;
 const today = new Date().toISOString().slice(0, 10);
 ---
 
@@ -33,6 +34,17 @@ const today = new Date().toISOString().slice(0, 10);
       <div class="field field--wide">
         <label for="title">标题</label>
         <input id="title" name="title" class="input" required autocomplete="off" value={article?.title ?? ''} />
+      </div>
+
+      <div class="field">
+        <label for="site">所属站点</label>
+        <select id="site" name="site" class="select">
+          {sites.map((site) => (
+            <option value={site.id} selected={site.id === (article?.siteId ?? sites[0]?.id)}>
+              {site.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div class="field">

@@ -4,20 +4,23 @@ export const prerender = false;
 import AdminLayout from '../../../admin/layouts/AdminLayout.astro';
 import ArticleForm from '../../../admin/components/ArticleForm.astro';
 import { emptyArticle, parseArticleForm } from '../../../server/article-form';
-import { createArticle, listCategories } from '../../../server/store';
+import { requestedSiteId } from '../../../server/admin-context';
+import { createArticle, listCategories, listSites } from '../../../server/store';
 import { practiceAreas } from '../../../content/firm';
 
-const categories = [...new Set([...practiceAreas.map((area) => area.name), ...listCategories()])];
+const siteId = requestedSiteId(Astro.url.searchParams);
+const sites = listSites();
+const categories = [...new Set([...practiceAreas.map((area) => area.name), ...listCategories(siteId)])];
 
 let error = '';
-let draft = emptyArticle();
+let draft = emptyArticle(siteId);
 draft.category = categories[0] ?? '';
 
 if (Astro.request.method === 'POST') {
   const parsed = parseArticleForm(await Astro.request.formData());
   if (parsed.ok) {
     createArticle(parsed.value);
-    return Astro.redirect('/admin/articles/?created=1');
+    return Astro.redirect(`/admin/articles/?created=1&site=${parsed.value.siteId}`);
   }
   error = parsed.error;
   draft = parsed.draft;
@@ -25,5 +28,5 @@ if (Astro.request.method === 'POST') {
 ---
 
 <AdminLayout title="新建文章" current="articles">
-  <ArticleForm article={{ ...draft, id: 0 }} {categories} {error} submitLabel="保存文章" />
+  <ArticleForm article={{ ...draft, id: 0 }} {sites} {categories} {error} submitLabel="保存文章" />
 </AdminLayout>

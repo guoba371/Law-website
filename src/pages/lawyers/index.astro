@@ -3,8 +3,9 @@ import BaseLayout from '../../site/layouts/SiteLayout.astro';
 import ContactBand from '../../site/components/ContactBand.astro';
 import { lawyers } from '../../content/firm';
 import { getSettings } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 
 const title = '律师团队';
 const description = `${firm.name}现有执业律师 ${firm.lawyerCount} 名，以下为部分合伙人及承办律师的执业信息。`;

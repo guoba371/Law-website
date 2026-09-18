@@ -3,8 +3,9 @@ import BaseLayout from '../../site/layouts/SiteLayout.astro';
 import ContactBand from '../../site/components/ContactBand.astro';
 import { practiceAreas, lawyers } from '../../content/firm';
 import { getSettings } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 
 const title = '业务领域';
 const description = `${firm.name}的主要业务领域：劳动与人事争议、婚姻家事、合同与商事纠纷、刑事辩护。`;

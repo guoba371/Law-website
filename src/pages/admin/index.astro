@@ -4,18 +4,21 @@ export const prerender = false;
 import AdminLayout from '../../admin/layouts/AdminLayout.astro';
 import { isUsingDefaultPassword } from '../../server/auth';
 import { publicUrl } from '../../server/site-url';
-import { countArticles, getSettings, listArticles } from '../../server/store';
+import { requestedSiteId } from '../../server/admin-context';
+import { countArticles, countInquiries, getSettings, listArticles } from '../../server/store';
 import { practiceAreas, lawyers, localPages, cities } from '../../content/firm';
 
-const settings = getSettings();
-const counts = countArticles();
-const recent = listArticles().slice(0, 6);
+const siteId = requestedSiteId(Astro.url.searchParams);
+const settings = getSettings(siteId);
+const counts = countArticles(siteId);
+const inquiryCounts = countInquiries(siteId);
+const recent = listArticles({ siteId }).slice(0, 6);
 const justRebuilt = Astro.url.searchParams.get('rebuilt') === '1';
 
 const metrics = [
   { value: String(counts.total), label: '文章总数' },
   { value: String(counts.published), label: '已发布' },
-  { value: String(counts.draft), label: '草稿' },
+  { value: String(inquiryCounts.new), label: '新咨询' },
   { value: String(practiceAreas.length), label: '业务领域' },
 ];
 
@@ -58,11 +61,11 @@ const inventory = [
         <h2>最近的文章</h2>
         <p>草稿不会出现在前台，发布后才随构建生效。</p>
       </div>
-      <a class="row-link" href="/admin/articles/">全部文章 →</a>
+      <a class="row-link" href={`/admin/articles/?site=${siteId}`}>全部文章 →</a>
     </div>
 
     {recent.length === 0 ? (
-      <div class="empty">还没有文章。<a href="/admin/articles/new/">新建第一篇</a></div>
+      <div class="empty">还没有文章。<a href={`/admin/articles/new/?site=${siteId}`}>新建第一篇</a></div>
     ) : (
       <table class="table">
         <thead>
@@ -77,7 +80,7 @@ const inventory = [
           {recent.map((article) => (
             <tr>
               <td>
-                <a class="row-link cell-title" href={`/admin/articles/${article.id}/`}>{article.title}</a>
+                <a class="row-link cell-title" href={`/admin/articles/${article.id}/?site=${siteId}`}>{article.title}</a>
                 <span class="cell-sub">/insights/{article.slug}/</span>
               </td>
               <td>{article.category}</td>
@@ -97,10 +100,32 @@ const inventory = [
   <div class="panel">
     <div class="panel-head">
       <div>
+        <h2>咨询线索</h2>
+        <p>前台提交的咨询会出现在这里，状态由运营跟进维护。</p>
+      </div>
+      <a class="row-link" href={`/admin/inquiries/?site=${siteId}`}>全部线索 →</a>
+    </div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>累计提交</label>
+          <p>{inquiryCounts.total}</p>
+        </div>
+        <div class="field">
+          <label>待跟进</label>
+          <p>{inquiryCounts.new}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
         <h2>站点信息</h2>
         <p>这些字段决定前台页头、页脚与结构化数据里的显示内容。</p>
       </div>
-      <a class="row-link" href="/admin/settings/">编辑 →</a>
+      <a class="row-link" href={`/admin/settings/?site=${siteId}`}>编辑 →</a>
     </div>
     <div class="panel-body">
       <div class="form-grid">

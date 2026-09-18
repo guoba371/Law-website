@@ -41,6 +41,28 @@
   margin-top: 4px;
 }
 
+.admin-site-switcher {
+  display: grid;
+  gap: 6px;
+  padding: 12px 20px;
+}
+
+.admin-site-switcher label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.admin-site-switcher select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+}
+
 .admin-nav {
   display: grid;
   gap: 2px;
@@ -252,6 +274,33 @@
 .table .cell-actions {
   text-align: right;
   white-space: nowrap;
+}
+
+.status-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.status-form .select {
+  min-width: 108px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.inquiry-detail summary {
+  cursor: pointer;
+  color: var(--brass-ink);
+  font-size: 13px;
+}
+
+.inquiry-detail p {
+  margin-top: 8px;
+  max-width: 460px;
+  white-space: pre-wrap;
+  color: var(--ink-soft);
+  font-size: 13.5px;
 }
 
 .table .cell-num {

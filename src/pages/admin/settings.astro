@@ -6,10 +6,12 @@ import { SETTING_KEYS, type SettingKey } from '../../server/db';
 import { LOGO_TYPES, removeUploadFile, saveImageUpload } from '../../server/media';
 import { publicUrl } from '../../server/site-url';
 import { getSettings, saveSettings } from '../../server/store';
+import { requestedSiteId } from '../../server/admin-context';
 
 const MAX_LOGO_BYTES = 1024 * 1024;
 
-let settings = getSettings();
+const siteId = requestedSiteId(Astro.url.searchParams);
+let settings = getSettings(siteId);
 let error = '';
 const saved = Astro.url.searchParams.get('saved') === '1';
 
@@ -59,11 +61,11 @@ if (Astro.request.method === 'POST') {
   }
 
   if (!error) {
-    saveSettings(values);
-    return Astro.redirect('/admin/settings/?saved=1');
+    saveSettings(values, siteId);
+    return Astro.redirect(`/admin/settings/?saved=1&site=${siteId}`);
   }
 
-  settings = getSettings();
+  settings = getSettings(siteId);
 }
 
 const fields: { key: SettingKey; label: string; hint?: string; type?: string }[] = [
@@ -92,6 +94,7 @@ const fields: { key: SettingKey; label: string; hint?: string; type?: string }[]
   {error && <p class="notice">保存失败：{error}</p>}
 
   <form method="post" enctype="multipart/form-data" autocomplete="off">
+    <input type="hidden" name="site" value={siteId} />
     <div class="panel">
       <div class="panel-head">
         <div>

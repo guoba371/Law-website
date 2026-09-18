@@ -35,13 +35,13 @@ export function isUsingDefaultPassword(): boolean {
 /** 首次运行时生成并存库的签名密钥，重启后会话不失效。 */
 function sessionSecret(): string {
   const db = getDb();
-  const row = db.prepare("SELECT value FROM settings WHERE key = 'session_secret'").get() as
+  const row = db.prepare("SELECT value FROM settings WHERE site_id = 1 AND key = 'session_secret'").get() as
     | { value: string }
     | undefined;
   if (row?.value) return row.value;
 
   const secret = randomBytes(32).toString('hex');
-  db.prepare("INSERT INTO settings (key, value) VALUES ('session_secret', ?)").run(secret);
+  db.prepare("INSERT INTO settings (site_id, key, value) VALUES (1, 'session_secret', ?)").run(secret);
   return secret;
 }
 

@@ -1,7 +1,8 @@
 ---
 import { getSettings } from '../../server/store';
+import { currentSiteId } from '../../server/site-context';
 
-const firm = getSettings();
+const firm = getSettings(currentSiteId());
 ---
 
 <section class="contact-band">

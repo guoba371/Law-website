@@ -13,7 +13,8 @@
     "@astrojs/node": "^11.1.6",
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.3",
-    "marked": "^18.0.13"
+    "marked": "^18.0.13",
+    "nodemailer": "^10.0.10"
   },
   "devDependencies": {
     "@phosphor-icons/core": "^2.1.1"
